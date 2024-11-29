@@ -337,11 +337,6 @@ input[type="text"]#iban::placeholder {
     width: 100%;
     margin: 10px 0; /* Vertical spacing between containers */
     height: auto; /* Allow height to adjust based on content */
-  }
-
-  /* Optional: Adjust padding and font sizes for better mobile experience */
-  .calendar-container,
-  .form-container {
     padding: 15px; /* Reduce padding on smaller screens */
   }
 

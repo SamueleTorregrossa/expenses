@@ -183,7 +183,7 @@ const requestExcel = async (
   // Apply styles to header rows
   [1, 2, 3].forEach((rowNumber) => {
     const row = worksheet.getRow(rowNumber);
-    row.eachCell((cell, colNumber) => {
+    row.eachCell((cell) => {
       cell.font = rowNumber === 1 ? headerFont : regularFont;
       cell.border = borderStyle;
     });
@@ -198,7 +198,7 @@ const requestExcel = async (
     "Amount",
   ]);
   headerRow.font = regularFont;
-  headerRow.eachCell((cell, colNumber) => {
+  headerRow.eachCell((cell) => {
     cell.border = borderStyle;
   });
 
@@ -241,7 +241,7 @@ const requestExcel = async (
 
   // Apply borders and fonts to data rows
   worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+    row.eachCell({ includeEmpty: false }, (cell) => {
       // Apply border
       cell.border = borderStyle;
 
