@@ -11,3 +11,6 @@ This is a basic web application that generates a travel expenses report based on
 
 ## Cookie Storage
 The application uses cookies to store your input data locally on your device. These cookies are strictly stored locally and are not shared with any server or third party. This ensures that your data remains private and secure.
+
+### Code Check:
+[![CodeFactor](https://www.codefactor.io/repository/github/samueletorregrossa/expenses.github.io/badge)](https://www.codefactor.io/repository/github/samueletorregrossa/expenses.github.io)
