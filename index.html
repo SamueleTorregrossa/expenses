@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico" />
+    <meta charset="utf-8" />
+    <title>Travel Report Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="static/stylesheet.css" />
+
+    <!-- Google Material Icons (if not already included) -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Rounded"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+    <script src="static/script.js" defer></script>
+  </head>
+
+  <body>
+    <!-- Header Section -->
+    <div class="main-content">
+      <div class="calendar-container">
+        <header class="calendar-header">
+          <p class="calendar-current-date"></p>
+          <div class="calendar-navigation">
+            <span id="calendar-prev" class="material-symbols-rounded">
+              chevron_left
+            </span>
+            <span id="calendar-today" class="material-symbols-rounded">
+              today
+            </span>
+            <span id="calendar-next" class="material-symbols-rounded">
+              chevron_right
+            </span>
+          </div>
+        </header>
+
+        <div class="calendar-body">
+          <ul class="calendar-weekdays">
+            <li>Mon</li>
+            <li>Tue</li>
+            <li>Wed</li>
+            <li>Thu</li>
+            <li>Fri</li>
+            <li>Sat</li>
+            <li>Sun</li>
+          </ul>
+          <ul class="calendar-dates"></ul>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <div class="distance-info">
+          <div class="input-container">
+            <input type="text" id="name" placeholder="Full Name*" />
+          </div>
+          <div class="input-container">
+            <input type="text" id="street" placeholder="Street, Number*" />
+          </div>
+          <div class="input-container">
+            <input type="text" id="zip" placeholder="Zip Code*" />
+          </div>
+          <div class="input-container">
+            <input type="text" id="city" placeholder="City*" />
+          </div>
+          <div class="input-container">
+            <input type="text" id="iban" placeholder="IBAN" />
+          </div>
+          <div class="input-container">
+            <input
+              type="text"
+              id="distance"
+              placeholder="One way distance in km*"
+            />
+          </div>
+          <div class="input-container">
+            <input type="text" id="rate" placeholder="Rate per km*" />
+          </div>
+          <div class="send-button" id="send-button" onclick="send()">
+            Generate Report
+        </div>
+      </div>
+    </div>
+    <!-- Footer Section -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>Created by</p>
+        <a href="https://github.com/SamueleTorregrossa" target="_blank">
+          Samuele Torregrossa
+        </a>
+        <p>• View source code on</p>
+        <a
+          href="https://github.com/SamueleTorregrossa/expenses.github.io"
+          target="_blank"
+          class="github-link"
+        >
+          <svg
+            class="github-logo"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 0C5.371 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 
+              0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 
+              1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.76-1.605-2.665-.305-5.466-1.333-5.466-5.931 
+              0-1.31.47-2.381 1.235-3.221-.135-.304-.54-1.527.105-3.176 0 0 1.005-.322 3.3 1.23a11.52 11.52 0 013.003-.404 
+              c1.02.005 2.045.138 3.003.404 2.28-1.552 3.285-1.23 3.285-1.23.645 1.649.24 2.872.12 3.176.77.84 1.23 1.911 
+              1.23 3.221 0 4.61-2.805 5.624-5.475 5.921.43.372.81 1.102.81 2.222 
+              0 1.606-.015 2.896-.015 3.286 0 .321.21.694.825.576C20.565 21.796 
+              24 17.303 24 12c0-6.627-5.373-12-12-12z"
+            />
+          </svg>
+        </a>
+      </div>
+    </footer>
+  </body>
+</html>

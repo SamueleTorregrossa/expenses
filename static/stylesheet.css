@@ -1,0 +1,373 @@
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column; /* Changed from row to column */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: #121212;
+  color: #ddd;
+}
+
+/* Font Face */
+@font-face {
+  font-family: "Material Symbols Rounded";
+  font-style: normal;
+  font-weight: 100 700;
+  src: url("font.woff2") format("woff2");
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared Container Styles */
+.calendar-container,
+.form-container {
+  background: #1e1e1e; /* Dark container background */
+  border-radius: 10px;
+  padding: 20px; /* Inner spacing */
+  height: 500px; /* Fixed height for both containers */
+  display: flex;
+  flex-direction: column; /* Vertical stacking of child elements */
+  justify-content: space-between; /* Distribute space between elements */
+  flex: 0 1 450px; /* Allows flexibility while setting a base width */
+  margin: 0 10px; /* Horizontal spacing between containers */
+}
+
+/* Main content wrapper */
+.main-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin-bottom: 20px; /* Space between content and footer */
+}
+
+/* Calendar Container Specific Styles */
+.calendar-container header {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px; /* Adjusted padding for better spacing */
+  justify-content: space-between;
+  border-bottom: 1px solid #333; /* Divider */
+  width: 100%; /* Ensures header spans the full width of the container */
+}
+
+.calendar-navigation {
+  display: flex;
+  gap: 10px; /* Adds space between navigation buttons */
+}
+
+.calendar-navigation span,
+.input-container span {
+  height: 38px;
+  width: 38px;
+  cursor: pointer;
+  text-align: center;
+  line-height: 38px;
+  border-radius: 50%;
+  user-select: none;
+  color: #aeabab;
+  font-size: 1.9rem;
+  transition: background 0.3s, color 0.3s;
+  display: flex; /* Centers icon vertically and horizontally */
+  align-items: center;
+  justify-content: center;
+}
+
+span:last-child {
+  margin-right: 0; /* Removed negative margin for better alignment */
+}
+
+span:hover {
+  background: #333; /* Darker hover background */
+  color: #ddd; /* Lighten icon/text on hover */
+}
+
+header .calendar-current-date {
+  font-weight: 500;
+  font-size: 1.45rem;
+  color: #ddd;
+  text-align: center; /* Centers the current date text */
+  flex-grow: 1; /* Allows the date to take up available space */
+}
+
+.calendar-body {
+  padding: 20px;
+  width: 100%; /* Ensures calendar body spans the full width */
+}
+
+.calendar-body ul {
+  list-style: none;
+  flex-wrap: wrap;
+  display: flex;
+  text-align: center;
+  padding: 10px 0; /* Adds vertical spacing */
+}
+
+.calendar-body .calendar-dates {
+  margin-bottom: 20px;
+}
+
+.calendar-body li {
+  width: calc(100% / 7);
+  font-size: 1.07rem;
+  color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px; /* Ensures uniform height for each date */
+}
+
+.calendar-body .calendar-weekdays li {
+  cursor: default;
+  font-weight: 500;
+  color: #eee;
+}
+
+.calendar-body .calendar-dates li {
+  margin-top: 10px; /* Reduced margin-top for better spacing */
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.calendar-dates li.inactive {
+  color: #777;
+}
+
+.calendar-dates li.active {
+  color: #eee;
+}
+
+.calendar-dates li.selected::before {
+  position: absolute;
+  content: "";
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: #41ad72; /* Accent color for selected date */
+}
+
+.calendar-dates li.active:not(.selected)::before {
+  background: #5675da; /* Accent for active but not selected */
+}
+
+.calendar-dates li::before {
+  position: absolute;
+  content: "";
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.calendar-dates li:not(.active):not(.selected):hover::before {
+  background: #333; /* Hover background for dates */
+}
+
+/* Distance Container Specific Styles */
+.form-container {
+  /* Ensure it behaves similarly to calendar-container */
+}
+
+.distance-info {
+  background: #1e1e1e; /* Dark background */
+  border-radius: 10px;
+  width: 100%; /* Fill the parent container */
+  height: 100%; /* Ensure full height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px; /* Inner spacing */
+}
+
+.input-container {
+  display: flex;
+  width: 100%; /* Utilize full width of the parent */
+  align-items: center; /* Vertically centers the items */
+  gap: 10px; /* Adds space between input elements */
+  margin: 7px; /* Adds space below the input container */
+}
+
+/* Text input */
+input[type="text"] {
+  border: 1px solid #555;
+  background-color: #2c2c2c;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  height: 40px;
+  text-align: left;
+  width: 100%;
+  color: #eee;
+  padding: 0 10px; /* Added horizontal padding to prevent text from touching sides */
+}
+
+input[type="text"]::placeholder {
+  color: #df9c9c;
+}
+
+/* for the iban the color of the placeholder can be #eee since it's optional */
+input[type="text"]#iban::placeholder {
+  color: #949494;
+}
+
+/* Button */
+.send-button {
+  background: #36755b;
+  color: #eee;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  margin: 7px 0; /* Adjusted margin for vertical spacing */
+  text-align: center;
+  width: 60%;
+  transition: background 0.3s;
+}
+
+.send-button:hover {
+  background: #2e5e47; /* Darker shade on hover */
+}
+
+/* Footer styles */
+.footer {
+  background: #1e1e1e;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.footer-content p {
+  font-size: 1rem;
+  color: #ddd;
+  display: flex;
+  align-items: center;
+  margin: 5px;
+}
+
+.footer-content a.github-link {
+  display: inline-flex;
+  align-items: center;
+  color: #41ad72;
+  text-decoration: none;
+  transition: color 0.3s;
+  font-weight: 500;
+  margin: 5px;
+}
+
+.footer-content a {
+  color: #41ad72;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-content a:hover {
+  color: #36755b; /* Darker shade on hover */
+}
+
+.footer-content a.github-link:hover {
+  color: #36755b; /* Darker shade on hover */
+}
+
+.github-logo {
+  width: 20px;
+  height: 20px;
+  fill: #41ad72; /* Match the link color */
+  transition: fill 0.3s;
+}
+
+.github-link:hover .github-logo {
+  fill: #36755b; /* Darker shade on hover */
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+    align-items: center; /* Center containers horizontally */
+    margin-bottom: 20px; /* Optional: adjust spacing if needed */
+  }
+
+  .calendar-container,
+  .form-container {
+    flex: none;
+    width: 100%;
+    margin: 10px 0; /* Vertical spacing between containers */
+    height: auto; /* Allow height to adjust based on content */
+  }
+
+  /* Optional: Adjust padding and font sizes for better mobile experience */
+  .calendar-container,
+  .form-container {
+    padding: 15px; /* Reduce padding on smaller screens */
+  }
+
+  .calendar-body ul {
+    padding: 5px 0; /* Reduce vertical spacing */
+  }
+
+  .calendar-body li {
+    font-size: 0.9rem; /* Adjust font size for dates */
+    height: 35px; /* Adjust height for dates */
+  }
+
+  input[type="text"] {
+    font-size: 1rem; /* Adjust input font size */
+    height: 35px; /* Adjust input height */
+  }
+
+  .send-button {
+    font-size: 1rem; /* Adjust button font size */
+    padding: 8px 16px; /* Adjust button padding */
+    width: 80%; /* Adjust button width */
+  }
+
+  .footer {
+    position: relative; /* Remove absolute positioning */
+    bottom: 0;
+    margin-top: 20px; /* Add space above footer */
+  }
+}
