@@ -195,6 +195,15 @@ header .calendar-current-date {
   background: #444; /* Hover background for dates */
 }
 
+.snakeIcon {
+  font-size: 1.2rem;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
 #snake::before {
   background: #236138;
   width: 25px;
@@ -333,13 +342,6 @@ input[type="text"]#iban::placeholder {
 
 .github-link:hover .github-logo {
   fill: #36755b; /* Darker shade on hover */
-}
-
-.snake {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  opacity: 0.5;
 }
 
 /* Mobile Responsive Styles */
