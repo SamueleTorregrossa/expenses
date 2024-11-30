@@ -8,6 +8,9 @@ const currdate = document.querySelector(".calendar-current-date");
 
 const prenexIcons = document.querySelectorAll(".calendar-navigation span");
 
+var isCalendarActive = true;
+const calendarElements = [];
+
 // Array of month names
 const months = [
   "January",
@@ -32,11 +35,13 @@ const attach_date_listeners = () => {
     if (!dateIcon.classList.contains("inactive")) {
       // When a date is clicked
       dateIcon.addEventListener("click", () => {
-        // add class selected to the selected date
-        if (dateIcon.classList.contains("selected")) {
-          dateIcon.classList.remove("selected");
-        } else {
-          dateIcon.classList.add("selected");
+        if (isCalendarActive) {
+          // add class selected to the selected date
+          if (dateIcon.classList.contains("selected")) {
+            dateIcon.classList.remove("selected");
+          } else {
+            dateIcon.classList.add("selected");
+          }
         }
       });
     }
@@ -66,7 +71,7 @@ const validateForm = () => {
 
 const updateSendButtonState = () => {
   const sendButton = document.querySelector("#send-button");
-  if (validateForm()) {
+  if (validateForm() && isCalendarActive) {
     sendButton.hidden = false;
   } else {
     sendButton.hidden = true;
@@ -96,7 +101,32 @@ document.addEventListener("DOMContentLoaded", () => {
   attachInputListeners();
 });
 
+function setCookie(name, value, days) {
+  let expires = "";
+  if (days) {
+    const date = new Date();
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == " ") c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
 const send = () => {
+  if (!isCalendarActive) {
+    return;
+  }
+
   // Save input values to cookies
   setCookie("name", document.getElementById("name").value, 365);
   setCookie("street", document.getElementById("street").value, 365);
@@ -291,65 +321,101 @@ const requestExcel = async (
 
 // Function to generate the calendar
 const manipulate = () => {
-  // Get the first day of the month
+  if (!isCalendarActive) {
+    return;
+  }
+
+  // Clear previous calendar elements if any
+  day.innerHTML = ""; // Assuming 'day' is your container element
+
+  // Get the first day of the month (0 - Sunday, 6 - Saturday)
   let dayone = new Date(year, month, 1).getDay() - 1;
   if (dayone === -1) {
-    dayone = 6;
+    dayone = 6; // Adjusting so that Monday is 0 and Sunday is 6
   }
 
-  // Get the last date of the month
-  let lastdate = new Date(year, month + 1, 0).getDate();
+  // Get the last date of the current month
+  const lastdate = new Date(year, month + 1, 0).getDate();
 
-  // Get the day of the last date of the month
-  let dayend = new Date(year, month, lastdate).getDay();
+  // Get the day of the week for the last date of the current month
+  const dayend = new Date(year, month, lastdate).getDay();
 
   // Get the last date of the previous month
-  let monthlastdate = new Date(year, month, 0).getDate();
+  const monthlastdate = new Date(year, month, 0).getDate();
 
-  // Variable to store the generated calendar HTML
-  let lit = "";
+  // Helper function to create an <li> element
+  const createListItem = (text, className, fullDate, isToday = false) => {
+    const li = document.createElement("li");
+    li.textContent = text;
+    li.className = className;
+    li.setAttribute("data-date", fullDate);
+    if (isToday) {
+      li.id = "today"; // Assuming 'today' is unique; consider using a class instead if multiple elements can be today
+    }
+    return li;
+  };
 
-  // Loop to add the last dates of the previous month
+  // Add the last few days of the previous month
   for (let i = dayone; i > 0; i--) {
-    monthDay = monthlastdate - i + 1;
-    fullDate = `${monthDay}/${month}/${year}`;
-    lit += `<li class="inactive" data-date="${fullDate}">${monthDay}</li>`;
+    const monthDay = monthlastdate - i + 1;
+    const fullDate = `${monthDay}/${month}/${year}`;
+    const li = createListItem(monthDay, "inactive", fullDate);
+    calendarElements.push(li);
   }
 
-  // Loop to add the dates of the current month
+  // Add the current month's days
   for (let i = 1; i <= lastdate; i++) {
     // Check if the current date is today
-    let isToday =
-      i === date.getDate() &&
-      month === new Date().getMonth() &&
-      year === new Date().getFullYear()
-        ? "today"
-        : "";
-    monthDay = `${i}`;
-    fullDate = `${monthDay}/${month + 1}/${year}`;
-    weekday = new Date(year, month, i).getDay();
-    className = weekday === 0 || weekday === 6 ? "inactive" : "active";
+    const today = new Date();
+    const isToday =
+      i === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear();
 
-    lit += `<li class="${className}" id="${isToday}" data-date="${fullDate}">${monthDay}</li>`;
+    const monthDay = i;
+    const fullDate = `${monthDay}/${month + 1}/${year}`;
+    const weekday = new Date(year, month, i).getDay();
+    const className = weekday === 0 || weekday === 6 ? "inactive" : "active";
+
+    const li = createListItem(monthDay, className, fullDate, isToday);
+    calendarElements.push(li);
   }
 
-  // Loop to add the first dates of the next month
+  // Add the first few days of the next month
   for (let i = dayend; i < 7; i++) {
-    monthDay = i - dayend + 1;
-    fullDate = `${monthDay}/${month + 2}/${year}`;
-    lit += `<li class="inactive" data-date="${fullDate}">${monthDay}</li>`;
+    const monthDay = i - dayend + 1;
+    const fullDate = `${monthDay}/${month + 2}/${year}`;
+    const li = createListItem(monthDay, "inactive", fullDate);
+    calendarElements.push(li);
   }
 
-  // Update the text of the current date element
-  // with the formatted current month and year
+  // Update the current date display
   currdate.innerText = `${months[month]} ${year}`;
 
-  // update the HTML of the dates element
-  // with the generated calendar
-  day.innerHTML = lit;
+  // Append all created <li> elements to the calendar container
+  calendarElements.forEach((li) => day.appendChild(li));
 
+  window.calendarElements = calendarElements;
+
+  // Attach event listeners to the date elements
   attach_date_listeners();
 };
+
+function getInputCookies() {
+  if (getCookie("name"))
+    document.getElementById("name").value = getCookie("name");
+  if (getCookie("street"))
+    document.getElementById("street").value = getCookie("street");
+  if (getCookie("zip")) document.getElementById("zip").value = getCookie("zip");
+  if (getCookie("city"))
+    document.getElementById("city").value = getCookie("city");
+  if (getCookie("iban"))
+    document.getElementById("iban").value = getCookie("iban");
+  if (getCookie("distance"))
+    document.getElementById("distance").value = getCookie("distance");
+  if (getCookie("rate"))
+    document.getElementById("rate").value = getCookie("rate");
+}
 
 manipulate();
 getInputCookies();
@@ -393,39 +459,185 @@ todayIcon.addEventListener("click", () => {
   manipulate();
 });
 
-function setCookie(name, value, days) {
-  let expires = "";
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-    expires = "; expires=" + date.toUTCString();
-  }
-  document.cookie = name + "=" + (value || "") + expires + "; path=/";
-}
+// * GAME LOGIC * //
 
-function getCookie(name) {
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(";");
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == " ") c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-  }
-  return null;
-}
+var ceValues = [];
 
-function getInputCookies() {
-  if (getCookie("name"))
-    document.getElementById("name").value = getCookie("name");
-  if (getCookie("street"))
-    document.getElementById("street").value = getCookie("street");
-  if (getCookie("zip")) document.getElementById("zip").value = getCookie("zip");
-  if (getCookie("city"))
-    document.getElementById("city").value = getCookie("city");
-  if (getCookie("iban"))
-    document.getElementById("iban").value = getCookie("iban");
-  if (getCookie("distance"))
-    document.getElementById("distance").value = getCookie("distance");
-  if (getCookie("rate"))
-    document.getElementById("rate").value = getCookie("rate");
-}
+var rowCount;
+var colCount;
+var period = 500;
+var size = 1;
+var currentPos = [0, -1];
+var fruitPos = [3, 3];
+var isGameOver = false;
+var keyDirectionQueue = [];
+var keyDirection = 0;
+var direction = [0, 1];
+var isTerminated = false;
+
+const directionMap = {
+  0: [0, 1],
+  1: [0, -1],
+  2: [-1, 0],
+  3: [1, 0],
+};
+
+const keyDirectionMap = {
+  ArrowRight: 0,
+  ArrowLeft: 1,
+  ArrowUp: 2,
+  ArrowDown: 3,
+};
+
+const oppositeKeyDirection = {
+  ArrowLeft: 0,
+  ArrowRight: 1,
+  ArrowDown: 2,
+  ArrowUp: 3,
+};
+// Define a function that removes the event listeners from all dates and icons
+const initializeDates = () => {
+  for (let i = 0; i < calendarElements.length; i++) {
+    calendarElements[i].classList = "inactive";
+    calendarElements[i].id = "";
+    ceValues.push(0);
+  }
+};
+// define a function that updates the dates
+const updateDates = () => {
+  // calculate the index of the position
+  posIndex = currentPos[0] * colCount + currentPos[1];
+  fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
+  if (ceValues[posIndex] > 0) {
+    isGameOver = true;
+    ceValues[posIndex] = size + 1;
+  }
+  if (!isGameOver) {
+    ceValues[posIndex] = size + 1;
+  }
+
+  for (let i = 0; i < calendarElements.length; i++) {
+    if (ceValues[i] > 0) {
+      calendarElements[i].classList = "selected";
+      calendarElements[i].id = "";
+      ceValues[i] -= 1;
+    } else {
+      calendarElements[i].classList = "inactive";
+      calendarElements[i].id = "";
+    }
+    // calendarElements[i].innerText = ceValues[i];
+  }
+  calendarElements[posIndex].id = "head";
+
+  if (currentPos[0] === fruitPos[0] && currentPos[1] === fruitPos[1]) {
+    while (calendarElements[fruitPosIndex].classList.contains("selected")) {
+      fruitPos[0] = Math.floor(Math.random() * rowCount);
+      fruitPos[1] = Math.floor(Math.random() * colCount);
+      fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
+    }
+    size += 1;
+  }
+
+  // update the fruit position
+  calendarElements[fruitPosIndex].id = "today";
+};
+
+document.addEventListener("keydown", (event) => {
+  if (event.key in keyDirectionMap) {
+    // if the queue is empty
+    if (
+      keyDirectionQueue.length === 0 &&
+      keyDirection !== oppositeKeyDirection[event.key]
+    ) {
+      keyDirectionQueue.push(keyDirectionMap[event.key]);
+    } else if (
+      keyDirectionQueue.length === 1 &&
+      keyDirectionQueue[0] !== keyDirectionMap[event.key] &&
+      keyDirectionQueue[0] !== oppositeKeyDirection[event.key]
+    ) {
+      keyDirectionQueue.push(keyDirectionMap[event.key]);
+    }
+  }
+});
+
+const checkWinLoseCondition = () => {
+  // explicit check
+  var inactiveCount = 0;
+  for (let i = 0; i < calendarElements.length; i++) {
+    if (calendarElements[i].classList.contains("inactive")) {
+      inactiveCount += 1;
+    }
+  }
+  if (inactiveCount === 1) {
+    isGameOver = true;
+    isTerminated = true;
+    alert("You win!");
+  }
+  var selectedCount = 0;
+  for (let i = 0; i < calendarElements.length; i++) {
+    if (calendarElements[i].classList.contains("selected")) {
+      selectedCount += 1;
+    }
+  }
+  if (isGameOver && selectedCount === 1) {
+    isTerminated = true;
+    alert("You lose :(");
+  }
+};
+
+// Define a function that updates the game state
+const update = () => {
+  if (!isGameOver) {
+    // update the direction
+    if (keyDirectionQueue.length > 0) {
+      keyDirection = keyDirectionQueue.shift();
+      direction = directionMap[keyDirection];
+    }
+    // update the current position
+    currentPos[0] += direction[0];
+    currentPos[1] += direction[1];
+    if (currentPos[0] < 0) {
+      currentPos[0] = rowCount - 1;
+    } else if (currentPos[0] >= rowCount) {
+      currentPos[0] = 0;
+    }
+    if (currentPos[1] < 0) {
+      currentPos[1] = colCount - 1;
+    } else if (currentPos[1] >= colCount) {
+      currentPos[1] = 0;
+    }
+  }
+  updateDates(currentPos, fruitPos, size);
+  checkWinLoseCondition();
+
+  if (!isTerminated) {
+    // call itself in 1 second
+    period -= 1;
+    period = Math.max(period, 200);
+    setTimeout(update, period);
+  }
+};
+
+// Define a function that starts the game
+const startGame = () => {
+  console.log("Game started!");
+  rowCount = Math.floor(calendarElements.length / 7);
+  colCount = 7;
+  currentPos = [0, -1];
+  fruitPos = [3, 3];
+  isGameOver = false;
+  keyDirectionQueue = [];
+  keyDirection = 0;
+  direction = [0, 1];
+  isTerminated = false;
+  size = 1;
+  period = 500;
+  ceValues = [];
+
+  isCalendarActive = false;
+  initializeDates();
+  updateSendButtonState();
+
+  // call the update function every 1 second
+  update();
+};

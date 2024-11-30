@@ -187,6 +187,9 @@ header .calendar-current-date {
 .calendar-dates li.selected#today::before {
   background: rgb(106, 186, 197); /* Accent color for selected date */
 }
+.calendar-dates li.selected#head::before {
+  background: #318356; /* Accent color for selected date */
+}
 
 .calendar-dates li.active:not(.selected):hover::before {
   background: #444; /* Hover background for dates */
@@ -312,6 +315,13 @@ input[type="text"]#iban::placeholder {
 
 .github-link:hover .github-logo {
   fill: #36755b; /* Darker shade on hover */
+}
+
+.snake {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  opacity: 0.5;
 }
 
 /* Mobile Responsive Styles */
