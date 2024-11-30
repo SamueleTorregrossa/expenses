@@ -103,7 +103,7 @@ span:last-child {
 }
 
 span:hover {
-  background: #333; /* Darker hover background */
+  background: #444; /* Darker hover background */
   color: #ddd; /* Lighten icon/text on hover */
 }
 
