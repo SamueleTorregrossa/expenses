@@ -323,15 +323,14 @@ const manipulate = () => {
       i === date.getDate() &&
       month === new Date().getMonth() &&
       year === new Date().getFullYear()
-        ? "active"
+        ? "today"
         : "";
     monthDay = `${i}`;
     fullDate = `${monthDay}/${month + 1}/${year}`;
     weekday = new Date(year, month, i).getDay();
-    // isWeekend = weekday === 0 || weekday === 6 ? "inactive" : "";
-    isWeekend = weekday === 0 || weekday === 6 ? "inactive" : "";
+    className = weekday === 0 || weekday === 6 ? "inactive" : "active";
 
-    lit += `<li class="${isWeekend} ${isToday}" data-date="${fullDate}">${monthDay}</li>`;
+    lit += `<li class="${className}" id="${isToday}" data-date="${fullDate}">${monthDay}</li>`;
   }
 
   // Loop to add the first dates of the next month

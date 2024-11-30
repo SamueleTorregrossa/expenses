@@ -135,7 +135,6 @@ header .calendar-current-date {
 .calendar-body li {
   width: calc(100% / 7);
   font-size: 1.07rem;
-  color: #eee;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,7 +144,6 @@ header .calendar-current-date {
 .calendar-body .calendar-weekdays li {
   cursor: default;
   font-weight: 500;
-  color: #eee;
 }
 
 .calendar-body .calendar-dates li {
@@ -159,25 +157,16 @@ header .calendar-current-date {
   color: #777;
 }
 
+.calendar-dates li.inactive#today {
+  color: #aaa;
+}
+
 .calendar-dates li.active {
   color: #eee;
 }
 
-.calendar-dates li.selected::before {
-  position: absolute;
-  content: "";
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: #41ad72; /* Accent color for selected date */
-}
-
-.calendar-dates li.active:not(.selected)::before {
-  background: #5675da; /* Accent for active but not selected */
+.calendar-dates li#today::before {
+  background: #657ec9;
 }
 
 .calendar-dates li::before {
@@ -192,13 +181,15 @@ header .calendar-current-date {
   transform: translate(-50%, -50%);
 }
 
-.calendar-dates li:not(.active):not(.selected):hover::before {
-  background: #333; /* Hover background for dates */
+.calendar-dates li.selected::before {
+  background: #41ad72; /* Accent color for selected date */
+}
+.calendar-dates li.selected#today::before {
+  background: rgb(106, 186, 197); /* Accent color for selected date */
 }
 
-/* Distance Container Specific Styles */
-.form-container {
-  /* Ensure it behaves similarly to calendar-container */
+.calendar-dates li.active:not(.selected):hover::before {
+  background: #444; /* Hover background for dates */
 }
 
 .distance-info {
