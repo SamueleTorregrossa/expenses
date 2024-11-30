@@ -195,6 +195,24 @@ header .calendar-current-date {
   background: #444; /* Hover background for dates */
 }
 
+#snake::before {
+  background: #236138;
+  width: 25px;
+  height: 25px;
+}
+
+#head::before {
+  background: #318356;
+  width: 30px;
+  height: 30px;
+}
+
+#fruit::before {
+  background: #657ec9;
+  width: 25px;
+  height: 25px;
+}
+
 .distance-info {
   background: #1e1e1e; /* Dark background */
   border-radius: 10px;

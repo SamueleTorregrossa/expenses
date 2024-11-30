@@ -468,7 +468,8 @@ var colCount;
 var period = 500;
 var size = 1;
 var currentPos = [0, -1];
-var fruitPos = [3, 3];
+var todayIndex = calendarElements.findIndex((el) => el.id === "today");
+var fruitPos = [Math.floor(todayIndex / 7), todayIndex % 7];
 var isGameOver = false;
 var keyDirectionQueue = [];
 var keyDirection = 0;
@@ -506,13 +507,14 @@ const initializeDates = () => {
 // define a function that updates the dates
 const updateDates = () => {
   // calculate the index of the position
-  posIndex = currentPos[0] * colCount + currentPos[1];
-  fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
-  if (ceValues[posIndex] > 0) {
-    isGameOver = true;
-    ceValues[posIndex] = size + 1;
-  }
+  var posIndex = currentPos[0] * colCount + currentPos[1];
+  var fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
   if (!isGameOver) {
+    if (ceValues[posIndex] > 0) {
+      isGameOver = true;
+      currdate.innerText = "💀 Game Over 💀";
+      period = 50;
+    }
     ceValues[posIndex] = size + 1;
   }
 
@@ -525,7 +527,6 @@ const updateDates = () => {
       calendarElements[i].classList = "inactive";
       calendarElements[i].id = "";
     }
-    // calendarElements[i].innerText = ceValues[i];
   }
   calendarElements[posIndex].id = "head";
 
@@ -535,11 +536,10 @@ const updateDates = () => {
       fruitPos[1] = Math.floor(Math.random() * colCount);
       fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
     }
+    currdate.innerText = `Score: ${size}`;
     size += 1;
   }
-
-  // update the fruit position
-  calendarElements[fruitPosIndex].id = "today";
+  calendarElements[fruitPosIndex].id = "fruit";
 };
 
 document.addEventListener("keydown", (event) => {
@@ -563,25 +563,26 @@ document.addEventListener("keydown", (event) => {
 const checkWinLoseCondition = () => {
   // explicit check
   var inactiveCount = 0;
-  for (let i = 0; i < calendarElements.length; i++) {
-    if (calendarElements[i].classList.contains("inactive")) {
+  for (let i = 0; i < ceValues.length; i++) {
+    if (ceValues[i] === 0) {
       inactiveCount += 1;
     }
   }
-  if (inactiveCount === 1) {
+  if (inactiveCount <= 1) {
     isGameOver = true;
+    currdate.innerText = "🎉 You Win 🎉";
+    period = 50;
     isTerminated = true;
-    alert("You win!");
   }
   var selectedCount = 0;
-  for (let i = 0; i < calendarElements.length; i++) {
-    if (calendarElements[i].classList.contains("selected")) {
+  for (let i = 0; i < ceValues.length; i++) {
+    if (ceValues[i] > 0) {
       selectedCount += 1;
     }
   }
-  if (isGameOver && selectedCount === 1) {
+  if (isGameOver && selectedCount <= 0) {
     isTerminated = true;
-    alert("You lose :(");
+    initializeDates();
   }
 };
 var gameTimeout;
@@ -606,14 +607,13 @@ const update = () => {
     } else if (currentPos[1] >= colCount) {
       currentPos[1] = 0;
     }
+    period -= 1;
+    period = Math.max(period, 200);
   }
   updateDates(currentPos, fruitPos, size);
   checkWinLoseCondition();
 
   if (!isTerminated) {
-    // call itself in 1 second
-    period -= 1;
-    period = Math.max(period, 200);
     gameTimeout = setTimeout(update, period);
   }
 };
@@ -624,7 +624,7 @@ const startGame = () => {
   rowCount = Math.floor(calendarElements.length / 7);
   colCount = 7;
   currentPos = [0, -1];
-  fruitPos = [3, 3];
+  fruitPos = [Math.floor(todayIndex / 7), todayIndex % 7];
   isGameOver = false;
   keyDirectionQueue = [];
   keyDirection = 0;
@@ -633,6 +633,8 @@ const startGame = () => {
   size = 1;
   period = 500;
   ceValues = [];
+  currdate.innerText = "Score: 0";
+
   // if the timeout is not null, clear it
   if (gameTimeout) {
     clearTimeout(gameTimeout);
