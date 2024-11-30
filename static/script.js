@@ -461,183 +461,183 @@ todayIcon.addEventListener("click", () => {
 
 // * GAME LOGIC * //
 
-// var ceValues = [];
+var ceValues = [];
 
-// var rowCount;
-// var colCount;
-// var period = 500;
-// var size = 1;
-// var currentPos = [0, -1];
-// var fruitPos = [3, 3];
-// var isGameOver = false;
-// var keyDirectionQueue = [];
-// var keyDirection = 0;
-// var direction = [0, 1];
-// var isTerminated = false;
+var rowCount;
+var colCount;
+var period = 500;
+var size = 1;
+var currentPos = [0, -1];
+var fruitPos = [3, 3];
+var isGameOver = false;
+var keyDirectionQueue = [];
+var keyDirection = 0;
+var direction = [0, 1];
+var isTerminated = false;
 
-// const directionMap = {
-//   0: [0, 1],
-//   1: [0, -1],
-//   2: [-1, 0],
-//   3: [1, 0],
-// };
+const directionMap = {
+  0: [0, 1],
+  1: [0, -1],
+  2: [-1, 0],
+  3: [1, 0],
+};
 
-// const keyDirectionMap = {
-//   ArrowRight: 0,
-//   ArrowLeft: 1,
-//   ArrowUp: 2,
-//   ArrowDown: 3,
-// };
+const keyDirectionMap = {
+  ArrowRight: 0,
+  ArrowLeft: 1,
+  ArrowUp: 2,
+  ArrowDown: 3,
+};
 
-// const oppositeKeyDirection = {
-//   ArrowLeft: 0,
-//   ArrowRight: 1,
-//   ArrowDown: 2,
-//   ArrowUp: 3,
-// };
-// // Define a function that removes the event listeners from all dates and icons
-// const initializeDates = () => {
-//   for (let i = 0; i < calendarElements.length; i++) {
-//     calendarElements[i].classList = "inactive";
-//     calendarElements[i].id = "";
-//     ceValues.push(0);
-//   }
-// };
-// // define a function that updates the dates
-// const updateDates = () => {
-//   // calculate the index of the position
-//   posIndex = currentPos[0] * colCount + currentPos[1];
-//   fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
-//   if (ceValues[posIndex] > 0) {
-//     isGameOver = true;
-//     ceValues[posIndex] = size + 1;
-//   }
-//   if (!isGameOver) {
-//     ceValues[posIndex] = size + 1;
-//   }
+const oppositeKeyDirection = {
+  ArrowLeft: 0,
+  ArrowRight: 1,
+  ArrowDown: 2,
+  ArrowUp: 3,
+};
+// Define a function that removes the event listeners from all dates and icons
+const initializeDates = () => {
+  for (let i = 0; i < calendarElements.length; i++) {
+    calendarElements[i].classList = "inactive";
+    calendarElements[i].id = "";
+    ceValues.push(0);
+  }
+};
+// define a function that updates the dates
+const updateDates = () => {
+  // calculate the index of the position
+  posIndex = currentPos[0] * colCount + currentPos[1];
+  fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
+  if (ceValues[posIndex] > 0) {
+    isGameOver = true;
+    ceValues[posIndex] = size + 1;
+  }
+  if (!isGameOver) {
+    ceValues[posIndex] = size + 1;
+  }
 
-//   for (let i = 0; i < calendarElements.length; i++) {
-//     if (ceValues[i] > 0) {
-//       calendarElements[i].classList = "selected";
-//       calendarElements[i].id = "snake";
-//       ceValues[i] -= 1;
-//     } else {
-//       calendarElements[i].classList = "inactive";
-//       calendarElements[i].id = "";
-//     }
-//     // calendarElements[i].innerText = ceValues[i];
-//   }
-//   calendarElements[posIndex].id = "head";
+  for (let i = 0; i < calendarElements.length; i++) {
+    if (ceValues[i] > 0) {
+      calendarElements[i].classList = "selected";
+      calendarElements[i].id = "snake";
+      ceValues[i] -= 1;
+    } else {
+      calendarElements[i].classList = "inactive";
+      calendarElements[i].id = "";
+    }
+    // calendarElements[i].innerText = ceValues[i];
+  }
+  calendarElements[posIndex].id = "head";
 
-//   if (currentPos[0] === fruitPos[0] && currentPos[1] === fruitPos[1]) {
-//     while (calendarElements[fruitPosIndex].classList.contains("selected")) {
-//       fruitPos[0] = Math.floor(Math.random() * rowCount);
-//       fruitPos[1] = Math.floor(Math.random() * colCount);
-//       fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
-//     }
-//     size += 1;
-//   }
+  if (currentPos[0] === fruitPos[0] && currentPos[1] === fruitPos[1]) {
+    while (calendarElements[fruitPosIndex].classList.contains("selected")) {
+      fruitPos[0] = Math.floor(Math.random() * rowCount);
+      fruitPos[1] = Math.floor(Math.random() * colCount);
+      fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
+    }
+    size += 1;
+  }
 
-//   // update the fruit position
-//   calendarElements[fruitPosIndex].id = "today";
-// };
+  // update the fruit position
+  calendarElements[fruitPosIndex].id = "today";
+};
 
-// document.addEventListener("keydown", (event) => {
-//   if (event.key in keyDirectionMap) {
-//     // if the queue is empty
-//     if (
-//       keyDirectionQueue.length === 0 &&
-//       keyDirection !== oppositeKeyDirection[event.key]
-//     ) {
-//       keyDirectionQueue.push(keyDirectionMap[event.key]);
-//     } else if (
-//       keyDirectionQueue.length === 1 &&
-//       keyDirectionQueue[0] !== keyDirectionMap[event.key] &&
-//       keyDirectionQueue[0] !== oppositeKeyDirection[event.key]
-//     ) {
-//       keyDirectionQueue.push(keyDirectionMap[event.key]);
-//     }
-//   }
-// });
+document.addEventListener("keydown", (event) => {
+  if (event.key in keyDirectionMap) {
+    // if the queue is empty
+    if (
+      keyDirectionQueue.length === 0 &&
+      keyDirection !== oppositeKeyDirection[event.key]
+    ) {
+      keyDirectionQueue.push(keyDirectionMap[event.key]);
+    } else if (
+      keyDirectionQueue.length === 1 &&
+      keyDirectionQueue[0] !== keyDirectionMap[event.key] &&
+      keyDirectionQueue[0] !== oppositeKeyDirection[event.key]
+    ) {
+      keyDirectionQueue.push(keyDirectionMap[event.key]);
+    }
+  }
+});
 
-// const checkWinLoseCondition = () => {
-//   // explicit check
-//   var inactiveCount = 0;
-//   for (let i = 0; i < calendarElements.length; i++) {
-//     if (calendarElements[i].classList.contains("inactive")) {
-//       inactiveCount += 1;
-//     }
-//   }
-//   if (inactiveCount === 1) {
-//     isGameOver = true;
-//     isTerminated = true;
-//     alert("You win!");
-//   }
-//   var selectedCount = 0;
-//   for (let i = 0; i < calendarElements.length; i++) {
-//     if (calendarElements[i].classList.contains("selected")) {
-//       selectedCount += 1;
-//     }
-//   }
-//   if (isGameOver && selectedCount === 1) {
-//     isTerminated = true;
-//     alert("You lose :(");
-//   }
-// };
+const checkWinLoseCondition = () => {
+  // explicit check
+  var inactiveCount = 0;
+  for (let i = 0; i < calendarElements.length; i++) {
+    if (calendarElements[i].classList.contains("inactive")) {
+      inactiveCount += 1;
+    }
+  }
+  if (inactiveCount === 1) {
+    isGameOver = true;
+    isTerminated = true;
+    alert("You win!");
+  }
+  var selectedCount = 0;
+  for (let i = 0; i < calendarElements.length; i++) {
+    if (calendarElements[i].classList.contains("selected")) {
+      selectedCount += 1;
+    }
+  }
+  if (isGameOver && selectedCount === 1) {
+    isTerminated = true;
+    alert("You lose :(");
+  }
+};
 
-// // Define a function that updates the game state
-// const update = () => {
-//   if (!isGameOver) {
-//     // update the direction
-//     if (keyDirectionQueue.length > 0) {
-//       keyDirection = keyDirectionQueue.shift();
-//       direction = directionMap[keyDirection];
-//     }
-//     // update the current position
-//     currentPos[0] += direction[0];
-//     currentPos[1] += direction[1];
-//     if (currentPos[0] < 0) {
-//       currentPos[0] = rowCount - 1;
-//     } else if (currentPos[0] >= rowCount) {
-//       currentPos[0] = 0;
-//     }
-//     if (currentPos[1] < 0) {
-//       currentPos[1] = colCount - 1;
-//     } else if (currentPos[1] >= colCount) {
-//       currentPos[1] = 0;
-//     }
-//   }
-//   updateDates(currentPos, fruitPos, size);
-//   checkWinLoseCondition();
+// Define a function that updates the game state
+const update = () => {
+  if (!isGameOver) {
+    // update the direction
+    if (keyDirectionQueue.length > 0) {
+      keyDirection = keyDirectionQueue.shift();
+      direction = directionMap[keyDirection];
+    }
+    // update the current position
+    currentPos[0] += direction[0];
+    currentPos[1] += direction[1];
+    if (currentPos[0] < 0) {
+      currentPos[0] = rowCount - 1;
+    } else if (currentPos[0] >= rowCount) {
+      currentPos[0] = 0;
+    }
+    if (currentPos[1] < 0) {
+      currentPos[1] = colCount - 1;
+    } else if (currentPos[1] >= colCount) {
+      currentPos[1] = 0;
+    }
+  }
+  updateDates(currentPos, fruitPos, size);
+  checkWinLoseCondition();
 
-//   if (!isTerminated) {
-//     // call itself in 1 second
-//     period -= 1;
-//     period = Math.max(period, 200);
-//     setTimeout(update, period);
-//   }
-// };
+  if (!isTerminated) {
+    // call itself in 1 second
+    period -= 1;
+    period = Math.max(period, 200);
+    setTimeout(update, period);
+  }
+};
 
-// // Define a function that starts the game
-// const startGame = () => {
-//   console.log("Game started!");
-//   rowCount = Math.floor(calendarElements.length / 7);
-//   colCount = 7;
-//   currentPos = [0, -1];
-//   fruitPos = [3, 3];
-//   isGameOver = false;
-//   keyDirectionQueue = [];
-//   keyDirection = 0;
-//   direction = [0, 1];
-//   isTerminated = false;
-//   size = 1;
-//   period = 500;
-//   ceValues = [];
+// Define a function that starts the game
+const startGame = () => {
+  console.log("Game started!");
+  rowCount = Math.floor(calendarElements.length / 7);
+  colCount = 7;
+  currentPos = [0, -1];
+  fruitPos = [3, 3];
+  isGameOver = false;
+  keyDirectionQueue = [];
+  keyDirection = 0;
+  direction = [0, 1];
+  isTerminated = false;
+  size = 1;
+  period = 500;
+  ceValues = [];
 
-//   isCalendarActive = false;
-//   initializeDates();
-//   updateSendButtonState();
+  isCalendarActive = false;
+  initializeDates();
+  updateSendButtonState();
 
-//   // call the update function every 1 second
-//   update();
-// };
+  // call the update function every 1 second
+  update();
+};
