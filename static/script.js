@@ -584,7 +584,7 @@ const checkWinLoseCondition = () => {
     alert("You lose :(");
   }
 };
-
+var gameTimeout;
 // Define a function that updates the game state
 const update = () => {
   if (!isGameOver) {
@@ -614,7 +614,7 @@ const update = () => {
     // call itself in 1 second
     period -= 1;
     period = Math.max(period, 200);
-    setTimeout(update, period);
+    gameTimeout = setTimeout(update, period);
   }
 };
 
@@ -633,6 +633,10 @@ const startGame = () => {
   size = 1;
   period = 500;
   ceValues = [];
+  // if the timeout is not null, clear it
+  if (gameTimeout) {
+    clearTimeout(gameTimeout);
+  }
 
   isCalendarActive = false;
   initializeDates();
