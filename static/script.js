@@ -9,7 +9,7 @@ const currdate = document.querySelector(".calendar-current-date");
 const prenexIcons = document.querySelectorAll(".calendar-navigation span");
 
 var isCalendarActive = true;
-const calendarElements = [];
+var calendarElements = [];
 
 // Array of month names
 const months = [
@@ -327,7 +327,7 @@ const manipulate = () => {
 
   // Clear previous calendar elements if any
   calendarDates.innerHTML = ""; // Assuming 'day' is your container element
-  const calendarElements = [];
+  calendarElements = [];
 
   // Get the first day of the month (0 - Sunday, 6 - Saturday)
   let dayone = new Date(year, month, 1).getDay() - 1;
