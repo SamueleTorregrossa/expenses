@@ -514,8 +514,6 @@ const updateDates = () => {
     if (ceValues[posIndex] > 0) {
       isGameOver = true;
       currdate.innerText = "💀 Game Over 💀";
-      // reset the tail position
-      tail.classList.toggle("move-right");
       period = 50;
     }
     ceValues[posIndex] = size + 1;
@@ -586,6 +584,11 @@ const checkWinLoseCondition = () => {
   if (isGameOver && selectedCount <= 0) {
     isTerminated = true;
     initializeDates();
+  }
+  if (isTerminated) {
+    setTimeout(() => {
+      tail.classList.toggle("move-right");
+    });
   }
 };
 var gameTimeout;
