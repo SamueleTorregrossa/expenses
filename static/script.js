@@ -91,6 +91,10 @@ const attachInputListeners = () => {
   calendarDates.addEventListener("click", () => {
     setTimeout(updateSendButtonState, 0); // Delay to allow click event to modify "selected" classes
   });
+
+  prenexIcons.forEach((icon) => {
+    icon.addEventListener("click", updateSendButtonState);
+  });
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -101,42 +105,42 @@ document.addEventListener("DOMContentLoaded", () => {
   attachInputListeners();
 });
 
-function setCookie(name, value, days) {
-  let expires = "";
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-    expires = "; expires=" + date.toUTCString();
-  }
-  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+// Function to save input values to localStorage
+function saveToLocalStorage() {
+  localStorage.setItem("name", document.getElementById("name").value);
+  localStorage.setItem("street", document.getElementById("street").value);
+  localStorage.setItem("zip", document.getElementById("zip").value);
+  localStorage.setItem("city", document.getElementById("city").value);
+  localStorage.setItem("iban", document.getElementById("iban").value);
+  localStorage.setItem("distance", document.getElementById("distance").value);
+  localStorage.setItem("rate", document.getElementById("rate").value);
 }
 
-function getCookie(name) {
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(";");
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == " ") c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-  }
-  return null;
+// Function to retrieve input values from localStorage
+function getInputFromLocalStorage() {
+  const fields = ["name", "street", "zip", "city", "iban", "distance", "rate"];
+
+  fields.forEach((field) => {
+    const value = localStorage.getItem(field);
+    if (value) {
+      const inputElement = document.getElementById(field);
+      if (inputElement) {
+        inputElement.value = value;
+      }
+    }
+  });
 }
 
-const send = () => {
+// Updated generateReport function using localStorage
+const generateReport = () => {
   if (!isCalendarActive) {
     return;
   }
 
-  // Save input values to cookies
-  setCookie("name", document.getElementById("name").value, 365);
-  setCookie("street", document.getElementById("street").value, 365);
-  setCookie("zip", document.getElementById("zip").value, 365);
-  setCookie("city", document.getElementById("city").value, 365);
-  setCookie("iban", document.getElementById("iban").value, 365);
-  setCookie("distance", document.getElementById("distance").value, 365);
-  setCookie("rate", document.getElementById("rate").value, 365);
+  // Save input values to localStorage
+  saveToLocalStorage();
 
-  const selectedDates = document.querySelectorAll(".selected");
+  // Retrieve input values from the form
   const userName = document.querySelector("#name").value;
   const userStreet = document.querySelector("#street").value;
   const userCity = document.querySelector("#city").value;
@@ -145,18 +149,19 @@ const send = () => {
   const userDistance = document.querySelector("#distance").value;
   const userRate = document.querySelector("#rate").value;
 
-  const datesOutput = [];
-  selectedDates.forEach((date) => {
-    datesOutput.push(date.dataset.date);
-  });
+  // Collect selected dates
+  const selectedDates = document.querySelectorAll(".selected");
+  const datesOutput = Array.from(selectedDates).map(
+    (date) => date.dataset.date
+  );
 
   // Validate inputs
   if (
-    userName === "" ||
-    userStreet === "" ||
-    userCity === "" ||
-    userZip === "" ||
-    userRate === "" ||
+    !userName ||
+    !userStreet ||
+    !userCity ||
+    !userZip ||
+    !userRate ||
     datesOutput.length === 0
   ) {
     alert("Please fill in all fields and select at least one date.");
@@ -401,24 +406,8 @@ const manipulate = () => {
   attach_date_listeners();
 };
 
-function getInputCookies() {
-  if (getCookie("name"))
-    document.getElementById("name").value = getCookie("name");
-  if (getCookie("street"))
-    document.getElementById("street").value = getCookie("street");
-  if (getCookie("zip")) document.getElementById("zip").value = getCookie("zip");
-  if (getCookie("city"))
-    document.getElementById("city").value = getCookie("city");
-  if (getCookie("iban"))
-    document.getElementById("iban").value = getCookie("iban");
-  if (getCookie("distance"))
-    document.getElementById("distance").value = getCookie("distance");
-  if (getCookie("rate"))
-    document.getElementById("rate").value = getCookie("rate");
-}
-
 manipulate();
-getInputCookies();
+getInputFromLocalStorage();
 
 // Attach a click event listener to each icon
 prenexIcons.forEach((icon) => {

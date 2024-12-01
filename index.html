@@ -16,6 +16,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
     <script src="static/script.js" defer></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C8JKKW18B8"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-C8JKKW18B8');
+    </script>
   </head>
 
   <body>
@@ -81,7 +88,7 @@
           <div class="input-container">
             <input type="text" id="rate" placeholder="Rate per km*" />
           </div>
-          <div class="send-button" id="send-button" onclick="send()">
+          <div class="send-button" id="send-button" onclick="generateReport()">
             Generate Report
         </div>
       </div>
