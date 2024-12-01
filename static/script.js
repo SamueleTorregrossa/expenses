@@ -575,11 +575,19 @@ const checkWinLoseCondition = () => {
     initializeDates();
   }
   if (isTerminated) {
+    // store a game_end event with the score
+    gtag("event", "game_end", {
+      event_category: "game",
+      event_label: "snake",
+      value: size,
+    });
+
     setTimeout(() => {
       tail.classList.toggle("move-right");
     });
   }
 };
+
 var gameTimeout;
 // Define a function that updates the game state
 const update = () => {
