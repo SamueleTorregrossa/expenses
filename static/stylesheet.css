@@ -53,6 +53,7 @@ body {
   justify-content: space-between; /* Distribute space between elements */
   flex: 0 1 450px; /* Allows flexibility while setting a base width */
   margin: 0 10px; /* Horizontal spacing between containers */
+  z-index: 2;
 }
 
 /* Main content wrapper */
@@ -149,7 +150,7 @@ header .calendar-current-date {
 .calendar-body .calendar-dates li {
   margin-top: 10px; /* Reduced margin-top for better spacing */
   position: relative;
-  z-index: 1;
+  z-index: 2;
   cursor: pointer;
 }
 
@@ -193,15 +194,6 @@ header .calendar-current-date {
 
 .calendar-dates li.active:not(.selected):hover::before {
   background: #444; /* Hover background for dates */
-}
-
-.snakeIcon {
-  font-size: 1.2rem;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  opacity: 0.5;
-  cursor: pointer;
 }
 
 #snake::before {
@@ -340,6 +332,25 @@ input[type="text"]#iban::placeholder {
   transition: fill 0.3s;
 }
 
+.tail {
+  position: relative;
+  top: 235px;
+  left: -470px;
+  width: 100px;
+  height: 100px;
+  fill: #41ad72; /* Match the link color */
+  transition: fill 0.3s, transform 1s;
+  z-index: 1;
+}
+
+.move-right {
+  transform: translateX(100px);
+}
+
+.move-left {
+  transform: translateX(-100px);
+}
+
 .github-link:hover .github-logo {
   fill: #36755b; /* Darker shade on hover */
 }
@@ -359,6 +370,7 @@ input[type="text"]#iban::placeholder {
     margin: 10px 0; /* Vertical spacing between containers */
     height: auto; /* Allow height to adjust based on content */
     padding: 15px; /* Reduce padding on smaller screens */
+    z-index: 2; /* Ensure containers are above the footer */
   }
 
   .calendar-body ul {

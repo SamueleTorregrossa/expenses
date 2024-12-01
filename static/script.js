@@ -464,17 +464,18 @@ todayIcon.addEventListener("click", () => {
 var ceValues = [];
 
 var rowCount;
-var colCount;
+var colCount = 7;
 var period = 500;
 var size = 1;
 var currentPos = [0, -1];
 var todayIndex = calendarElements.findIndex((el) => el.id === "today");
-var fruitPos = [Math.floor(todayIndex / 7), todayIndex % 7];
+var fruitPos = [Math.floor(todayIndex / colCount), todayIndex % colCount];
 var isGameOver = false;
 var keyDirectionQueue = [];
 var keyDirection = 0;
 var direction = [0, 1];
 var isTerminated = false;
+var tail = document.querySelector(".tail");
 
 const directionMap = {
   0: [0, 1],
@@ -513,6 +514,8 @@ const updateDates = () => {
     if (ceValues[posIndex] > 0) {
       isGameOver = true;
       currdate.innerText = "💀 Game Over 💀";
+      // reset the tail position
+      tail.classList.toggle("move-right");
       period = 50;
     }
     ceValues[posIndex] = size + 1;
@@ -618,13 +621,19 @@ const update = () => {
   }
 };
 
+// Add a click event listener
+tail.addEventListener("click", () => {
+  tail.classList.toggle("move-right");
+});
+
 // Define a function that starts the game
 const startGame = () => {
   console.log("Game started!");
+
   rowCount = Math.floor(calendarElements.length / 7);
   colCount = 7;
   currentPos = [0, -1];
-  fruitPos = [Math.floor(todayIndex / 7), todayIndex % 7];
+  fruitPos = [Math.floor(todayIndex / colCount), todayIndex % colCount];
   isGameOver = false;
   keyDirectionQueue = [];
   keyDirection = 0;
