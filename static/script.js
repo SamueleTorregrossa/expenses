@@ -179,12 +179,6 @@ const generateReport = () => {
     userRate,
     datesOutput
   );
-
-  // send an event to Google Analytics
-  gtag("event", "generate_report", {
-    event_category: "report",
-    event_label: "excel",
-  });
 };
 
 const requestExcel = async (
@@ -509,12 +503,6 @@ const updateDates = () => {
     if (ceValues[posIndex] > 0) {
       isGameOver = true;
       currdate.innerText = "💀 Game Over 💀";
-      // store a game_end event with the score
-      gtag("event", "game_end", {
-        event_category: "game",
-        event_label: "loss",
-        value: size,
-      });
       period = 50;
     }
     ceValues[posIndex] = size + 1;
@@ -573,12 +561,6 @@ const checkWinLoseCondition = () => {
   if (inactiveCount <= 1) {
     isGameOver = true;
     currdate.innerText = "🎉 You Win 🎉";
-    // store a game_end event with the score
-    gtag("event", "game_end", {
-      event_category: "game",
-      event_label: "win",
-      value: size,
-    });
     period = 50;
     isTerminated = true;
   }
