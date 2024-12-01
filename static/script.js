@@ -179,6 +179,12 @@ const generateReport = () => {
     userRate,
     datesOutput
   );
+
+  // send an event to Google Analytics
+  gtag("event", "generate_report", {
+    event_category: "report",
+    event_label: "excel",
+  });
 };
 
 const requestExcel = async (
