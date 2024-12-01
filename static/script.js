@@ -503,6 +503,12 @@ const updateDates = () => {
     if (ceValues[posIndex] > 0) {
       isGameOver = true;
       currdate.innerText = "💀 Game Over 💀";
+      // store a game_end event with the score
+      gtag("event", "game_end", {
+        event_category: "game",
+        event_label: "loss",
+        value: size,
+      });
       period = 50;
     }
     ceValues[posIndex] = size + 1;
@@ -561,6 +567,12 @@ const checkWinLoseCondition = () => {
   if (inactiveCount <= 1) {
     isGameOver = true;
     currdate.innerText = "🎉 You Win 🎉";
+    // store a game_end event with the score
+    gtag("event", "game_end", {
+      event_category: "game",
+      event_label: "win",
+      value: size,
+    });
     period = 50;
     isTerminated = true;
   }
@@ -575,13 +587,6 @@ const checkWinLoseCondition = () => {
     initializeDates();
   }
   if (isTerminated) {
-    // store a game_end event with the score
-    gtag("event", "game_end", {
-      event_category: "game",
-      event_label: "snake",
-      value: size,
-    });
-
     setTimeout(() => {
       tail.classList.toggle("move-right");
     });
