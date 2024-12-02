@@ -1,6 +1,6 @@
 # Travel Expenses Report Generator
 
-https://samueletorregrossa.github.io/expenses.github.io/
+https://samueletorregrossa.github.io/expenses
 
 This is a basic web application that generates a travel expenses report based on the user's input.
 
