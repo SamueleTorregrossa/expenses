@@ -335,12 +335,31 @@ input[type="text"]#iban::placeholder {
 .tail {
   position: relative;
   top: 235px;
-  left: -470px;
+  left: -480px;
   width: 100px;
   height: 100px;
   fill: #41ad72; /* Match the link color */
   transition: fill 0.3s, transform 1s;
   z-index: 1;
+}
+
+/* Make it a fun font for snake game */
+.gameTitle {
+  font-size: 3.5rem;
+  color: #121212;
+  margin: 5px;
+  font-family: "Hachi Maru Pop", cursive;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.gameTitleContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 130px;
 }
 
 .move-right {
@@ -349,6 +368,15 @@ input[type="text"]#iban::placeholder {
 
 .move-left {
   transform: translateX(-100px);
+}
+
+.move-up {
+  transform: translateY(-100px);
+  color: #41ad72;
+}
+
+.move-down {
+  transform: translateY(100px);
 }
 
 .github-link:hover .github-logo {

@@ -8,6 +8,8 @@ const currdate = document.querySelector(".calendar-current-date");
 
 const prenexIcons = document.querySelectorAll(".calendar-navigation span");
 
+var gameTitle = document.getElementsByClassName("gameTitle");
+
 var isCalendarActive = true;
 var calendarElements = [];
 
@@ -636,6 +638,13 @@ const startGame = () => {
   period = 500;
   ceValues = [];
   currdate.innerText = "Score: 0";
+
+  // add .move-up to gameTitle
+  for (let i = 0; i < gameTitle.length; i++) {
+    setTimeout(() => {
+      gameTitle[i].classList.toggle("move-up");
+    }, i * 100);
+  }
 
   // if the timeout is not null, clear it
   if (gameTimeout) {
