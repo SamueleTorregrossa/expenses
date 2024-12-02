@@ -642,7 +642,9 @@ const startGame = () => {
   // add .move-up to gameTitle
   for (let i = 0; i < gameTitle.length; i++) {
     setTimeout(() => {
-      gameTitle[i].classList.toggle("move-up");
+      if (!gameTitle[i].classList.contains("move-up")) {
+        gameTitle[i].classList.add("move-up");
+      }
     }, i * 100);
   }
 
