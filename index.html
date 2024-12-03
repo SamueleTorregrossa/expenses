@@ -12,97 +12,127 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons+Rounded"
       rel="stylesheet"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
     <script src="static/script.js" defer></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C8JKKW18B8"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-C8JKKW18B8"
+    ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-C8JKKW18B8');
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-C8JKKW18B8");
     </script>
   </head>
 
   <body>
-    <div class="gameTitleContainer">
-      <h1 class="gameTitle">S</h1>
-      <h1 class="gameTitle">N</h1>
-      <h1 class="gameTitle">A</h1>
-      <h1 class="gameTitle">K</h1>
-      <h1 class="gameTitle">E</h1>
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 100" fill="currentColor" aria-hidden="true" class="tail" onclick="startGame()">
-      <path style="cursor: pointer" d="m103.31676,89c42.21158,6 50.44798,1 67.95034,-8c17.50236,-9 33.97517,-11 48.38888,-6c14.41371,5 15.44326,29.99999 5.14775,28.99999c-10.29551,-1 -19.56146,-2 -46.32978,3c-26.76832,5 -117.36878,-23.99999 -75.1572,-17.99999z"/>
-    </svg>
+    <script
+      src="https://run.confettipage.com/here.js"
+      data-confetticode="U2FsdGVkX1+hL2/+lojEZruyP4ZHK3G9Mhy1ApGpT7AYaYFAefbEI8mqhlcIghzzQ3Av7VtVR8umd1NH5kA1JxwVB/xV35QOnhqlzbsU5VX6dLKYUoVrw58sMxDK9nognrWFmiPve6uqFkShFozgmtRO3/ABAPGTov6VWYg7xZFxOleokJKjuq+m99XxeNrFS/QPvFSxtV+ANGuoUBXbFt4Uy/GJFwos+2OaIbCAiPqrqorTfPCOOXEGHsG9GtzQNHSRne8xJsGxUiKjiGMqjnGqw64lSY70b8P6REuUnGWR6hlgcu8WDf+fjP4JYD7vBvm48O3PQ1MdxqR8OU7RUa7XeVyxxFydGG0EZz1ske3xE8lt/fHd4aW3y0hf6pw7A1qkBIA9oiHK2okq2qUarHyz5vXwyuyevOwPiZ1oMY8DnjHyu+ohet4Fy42esIfTdnUwirv7vw9mR5CyIe6tWdUT7ISYBTLXFOlef91p4W41sCqP6ZrPEmpbj3se7RnRDpU/ywkmSOJbcKJkcbhEsQgIDvORzeaPsErMzejoyqjUTv0rKjWnPS94W9qP8dOMBlbp7Ma7NylAI02HPKc5KDeAkRXqlLQY6Q6k1zP9MTLCjuVxR1Le9TPZV9wIzVSbUHgvHsbt2HUPOZiNdPw3Eww7ZQpjB0UViRbDmoZVHAn9+j1lUZil4XbfqUy3DFGi"
+      data-trigger="custom"
+    ></script>
     <!-- Header Section -->
-    <div class="main-content">
-      <div class="calendar-container">
-        <header class="calendar-header">
-          <p class="calendar-current-date"></p>
-          <div class="calendar-navigation">
-            <span id="calendar-prev" class="material-symbols-rounded">
-              chevron_left
-            </span>
-            <span id="calendar-today" class="material-symbols-rounded">
-              today
-            </span>
-            <span id="calendar-next" class="material-symbols-rounded">
-              chevron_right
-            </span>
-          </div>
-        </header>
-
-        <div class="calendar-body">
-          <ul class="calendar-weekdays">
-            <li>Mon</li>
-            <li>Tue</li>
-            <li>Wed</li>
-            <li>Thu</li>
-            <li>Fri</li>
-            <li>Sat</li>
-            <li>Sun</li>
-          </ul>
-          <ul class="calendar-dates"></ul>
+    <div class="outerContainer">
+      <div class="main-content">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 250 100"
+          fill="currentColor"
+          aria-hidden="true"
+          class="tail"
+          onclick="startGame()"
+        >
+          <path
+            style="cursor: pointer"
+            d="m103.31676,89c42.21158,6 50.44798,1 67.95034,-8c17.50236,-9 33.97517,-11 48.38888,-6c14.41371,5 15.44326,29.99999 5.14775,28.99999c-10.29551,-1 -19.56146,-2 -46.32978,3c-26.76832,5 -117.36878,-23.99999 -75.1572,-17.99999z"
+          />
+        </svg>
+        <div class="gameTitleContainer">
+          <h1 class="gameTitle">S</h1>
+          <h1 class="gameTitle">N</h1>
+          <h1 class="gameTitle">A</h1>
+          <h1 class="gameTitle">K</h1>
+          <h1 class="gameTitle">E</h1>
         </div>
-      </div>
+        <div class="calendar-container">
+          <header class="calendar-header">
+            <p class="calendar-current-date"></p>
+            <div class="calendar-navigation">
+              <span id="calendar-prev" class="material-symbols-rounded">
+                chevron_left
+              </span>
+              <span id="calendar-today" class="material-symbols-rounded">
+                today
+              </span>
+              <span id="calendar-next" class="material-symbols-rounded">
+                chevron_right
+              </span>
+            </div>
+          </header>
 
-      <div class="form-container">
-        <div class="distance-info">
-          <div class="input-container">
-            <input type="text" id="name" placeholder="Full Name*" />
+          <div class="calendar-body">
+            <ul class="calendar-weekdays">
+              <li>Mon</li>
+              <li>Tue</li>
+              <li>Wed</li>
+              <li>Thu</li>
+              <li>Fri</li>
+              <li>Sat</li>
+              <li>Sun</li>
+            </ul>
+            <ul class="calendar-dates"></ul>
           </div>
-          <div class="input-container">
-            <input type="text" id="street" placeholder="Street, Number*" />
+        </div>
+
+        <div class="form-container">
+          <div class="distance-info">
+            <div class="input-container">
+              <input type="text" id="name" placeholder="Full Name*" />
+            </div>
+            <div class="input-container">
+              <input type="text" id="street" placeholder="Street, Number*" />
+            </div>
+            <div class="input-container">
+              <input type="text" id="zip" placeholder="Zip Code*" />
+            </div>
+            <div class="input-container">
+              <input type="text" id="city" placeholder="City*" />
+            </div>
+            <div class="input-container">
+              <input type="text" id="iban" placeholder="IBAN" />
+            </div>
+            <div class="input-container">
+              <input
+                type="text"
+                id="distance"
+                placeholder="One way distance in km*"
+              />
+            </div>
+            <div class="input-container">
+              <input type="text" id="rate" placeholder="Rate per km*" />
+            </div>
+            <div
+              class="send-button"
+              id="send-button"
+              onclick="generateReport()"
+            >
+              Generate Report
+            </div>
           </div>
-          <div class="input-container">
-            <input type="text" id="zip" placeholder="Zip Code*" />
-          </div>
-          <div class="input-container">
-            <input type="text" id="city" placeholder="City*" />
-          </div>
-          <div class="input-container">
-            <input type="text" id="iban" placeholder="IBAN" />
-          </div>
-          <div class="input-container">
-            <input
-              type="text"
-              id="distance"
-              placeholder="One way distance in km*"
-            />
-          </div>
-          <div class="input-container">
-            <input type="text" id="rate" placeholder="Rate per km*" />
-          </div>
-          <div class="send-button" id="send-button" onclick="generateReport()">
-            Generate Report
         </div>
       </div>
     </div>
+
     <!-- Footer Section -->
     <footer class="footer">
       <div class="footer-content">

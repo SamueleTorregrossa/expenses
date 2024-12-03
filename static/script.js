@@ -563,6 +563,7 @@ const checkWinLoseCondition = () => {
   if (inactiveCount <= 1) {
     isGameOver = true;
     currdate.innerText = "🎉 You Win 🎉";
+    window.ConfettiPage.play();
     period = 50;
     isTerminated = true;
   }
@@ -624,7 +625,6 @@ tail.addEventListener("click", () => {
 // Define a function that starts the game
 const startGame = () => {
   console.log("Game started!");
-
   rowCount = Math.floor(calendarElements.length / 7);
   colCount = 7;
   currentPos = [0, -1];

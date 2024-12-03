@@ -8,9 +8,8 @@
 
 body {
   display: flex;
-  flex-direction: column; /* Changed from row to column */
+  align-content: center;
   justify-content: center;
-  align-items: center;
   min-height: 100vh;
   padding: 20px;
   background: #121212;
@@ -54,6 +53,14 @@ body {
   flex: 0 1 450px; /* Allows flexibility while setting a base width */
   margin: 0 10px; /* Horizontal spacing between containers */
   z-index: 2;
+}
+
+.outerContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
 }
 
 /* Main content wrapper */
@@ -334,10 +341,10 @@ input[type="text"]#iban::placeholder {
 
 .tail {
   position: relative;
-  top: 235px;
-  left: -480px;
-  width: 100px;
-  height: 100px;
+  top: 160px;
+  left: 20px;
+  width: 70px;
+  height: 70px;
   fill: #41ad72; /* Match the link color */
   transition: fill 0.3s, transform 1s;
   z-index: 1;
@@ -359,7 +366,6 @@ input[type="text"]#iban::placeholder {
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: 130px;
 }
 
 .move-right {
