@@ -105,7 +105,158 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Attach listeners for input fields and dates
   attachInputListeners();
+
+  // Add load office days button
+  addLoadOfficeDaysButton();
 });
+
+// Function to add upload office days button
+function addLoadOfficeDaysButton() {
+  const calendarHeader = document.querySelector(".calendar-header");
+  if (calendarHeader && !document.querySelector("#upload-office-days-btn")) {
+    // Create file input (hidden)
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".json";
+    fileInput.style.display = "none";
+    fileInput.id = "office-days-file-input";
+
+    // Create upload button
+    const uploadButton = document.createElement("button");
+    uploadButton.id = "upload-office-days-btn";
+    uploadButton.textContent = "📁";
+    uploadButton.style.cssText = `
+      margin-left: 10px;
+      padding: 5px 10px;
+      background:rgb(101, 101, 101);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+
+    // Handle file upload
+    fileInput.addEventListener("change", async (event) => {
+      if (!isCalendarActive) return;
+
+      const file = event.target.files[0];
+      if (!file) return;
+
+      uploadButton.textContent = "Processing...";
+
+      try {
+        const text = await file.text();
+        const officeDays = JSON.parse(text);
+
+        if (Array.isArray(officeDays) && officeDays.length > 0) {
+          const monthAnalysis = analyzeOfficeDaysMonths(officeDays);
+
+          // Check for mixed month datasets
+          if (monthAnalysis.isMixed) {
+            uploadButton.textContent = "❌ Mixed months detected";
+            setTimeout(() => {
+              uploadButton.textContent = "📁";
+            }, 3000);
+
+            alert(
+              `❌ Mixed Month Data Detected\n\nThe uploaded file contains dates from multiple months:\n• ${monthAnalysis.monthsFound.join(
+                "\n• "
+              )}\n\nPlease upload office days for only one month at a time.`
+            );
+            return;
+          }
+
+          // Check if we have valid data for a single month
+          if (!monthAnalysis.singleMonth) {
+            uploadButton.textContent = "❌ No valid dates found";
+            setTimeout(() => {
+              uploadButton.textContent = "📁";
+            }, 3000);
+            return;
+          }
+
+          // Auto-navigate to the correct month
+          const targetMonth = monthAnalysis.singleMonth.month;
+          const targetYear = monthAnalysis.singleMonth.year;
+
+          if (month !== targetMonth || year !== targetYear) {
+            // Update global month/year variables
+            month = targetMonth;
+            year = targetYear;
+            date = new Date(year, month, 1);
+
+            // Regenerate calendar for the correct month
+            manipulate();
+
+            uploadButton.textContent = `📅 Moved to ${monthAnalysis.singleMonth.monthYear}`;
+            setTimeout(() => {
+              uploadButton.textContent = "📁";
+            }, 2000);
+
+            // Wait a moment for calendar to render, then select dates
+            setTimeout(() => {
+              document
+                .querySelectorAll(".calendar-dates .selected")
+                .forEach((el) => {
+                  el.classList.remove("selected");
+                });
+
+              const result = autoSelectOfficeDays(officeDays);
+              console.log(
+                `Auto-navigated to ${monthAnalysis.singleMonth.monthYear} and selected ${result.selectedCount} office days`
+              );
+            }, 100);
+          } else {
+            // Already on correct month, just select the dates
+            document
+              .querySelectorAll(".calendar-dates .selected")
+              .forEach((el) => {
+                el.classList.remove("selected");
+              });
+
+            const result = autoSelectOfficeDays(officeDays);
+            uploadButton.textContent = `✅ ${result.selectedCount} selected`;
+
+            setTimeout(() => {
+              uploadButton.textContent = "📁";
+            }, 2000);
+          }
+
+          // Store in localStorage for persistence
+          const monthYear = `${months[targetMonth]}_${targetYear}`;
+          localStorage.setItem(
+            `office_days_${monthYear}`,
+            JSON.stringify(officeDays)
+          );
+        } else {
+          uploadButton.textContent = "❌ Invalid file format";
+          setTimeout(() => {
+            uploadButton.textContent = "📁";
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("Error parsing office days file:", error);
+        uploadButton.textContent = "❌ Error reading file";
+        setTimeout(() => {
+          uploadButton.textContent = "📁";
+        }, 2000);
+      }
+
+      // Clear file input
+      fileInput.value = "";
+    });
+
+    // Button click opens file dialog
+    uploadButton.addEventListener("click", () => {
+      if (!isCalendarActive) return;
+      fileInput.click();
+    });
+
+    calendarHeader.appendChild(fileInput);
+    calendarHeader.appendChild(uploadButton);
+  }
+}
 
 // Function to save input values to localStorage
 function saveToLocalStorage() {
@@ -131,6 +282,93 @@ function getInputFromLocalStorage() {
       }
     }
   });
+}
+
+// Function to load office days from tracker data or localStorage
+async function loadOfficeDays() {
+  const monthYear = `${months[month]}_${year}`;
+
+  // First try to load from server files
+  try {
+    const response = await fetch(`office_days/${monthYear}/office_days.json`);
+
+    if (response.ok) {
+      const officeDays = await response.json();
+      return officeDays || [];
+    }
+  } catch (error) {
+    console.log("No office days file found on server for this month");
+  }
+
+  // Fallback to localStorage (uploaded files)
+  try {
+    const stored = localStorage.getItem(`office_days_${monthYear}`);
+    if (stored) {
+      const officeDays = JSON.parse(stored);
+      console.log("Loaded office days from localStorage");
+      return officeDays || [];
+    }
+  } catch (error) {
+    console.log("No office days found in localStorage");
+  }
+
+  return [];
+}
+
+// Function to analyze which months are in the office days
+function analyzeOfficeDaysMonths(officeDays) {
+  const monthsFound = new Set();
+  const monthYearData = [];
+
+  officeDays.forEach((dateStr) => {
+    try {
+      const parts = dateStr.split("/");
+      if (parts.length === 3) {
+        const day = parseInt(parts[0]);
+        const monthNum = parseInt(parts[1]);
+        const year = parseInt(parts[2]);
+
+        if (monthNum >= 1 && monthNum <= 12 && year > 1900) {
+          const monthYear = `${months[monthNum - 1]} ${year}`;
+          monthsFound.add(monthYear);
+          monthYearData.push({ month: monthNum - 1, year: year, monthYear });
+        }
+      }
+    } catch (e) {
+      // Ignore invalid dates
+    }
+  });
+
+  return {
+    monthsFound: Array.from(monthsFound),
+    isMixed: monthsFound.size > 1,
+    singleMonth: monthsFound.size === 1 ? monthYearData[0] : null,
+  };
+}
+
+// Function to auto-select office days in calendar
+function autoSelectOfficeDays(officeDays) {
+  let selectedCount = 0;
+  let totalDates = officeDays.length;
+
+  officeDays.forEach((dateStr) => {
+    // Find the calendar element with matching date
+    const dateElements = document.querySelectorAll(
+      `.calendar-dates li[data-date="${dateStr}"]`
+    );
+    dateElements.forEach((element) => {
+      if (!element.classList.contains("inactive")) {
+        element.classList.add("selected");
+        selectedCount++;
+      }
+    });
+  });
+
+  // Update send button state after auto-selecting
+  updateSendButtonState();
+
+  const monthAnalysis = analyzeOfficeDaysMonths(officeDays);
+  return { selectedCount, totalDates, monthAnalysis };
 }
 
 // Updated generateReport function using localStorage
@@ -493,6 +731,24 @@ const manipulate = () => {
 
   // Attach event listeners to the date elements
   attach_date_listeners();
+
+  // Auto-load office days for this month (only when calendar is active, not during game)
+  if (isCalendarActive) {
+    loadOfficeDays().then((officeDays) => {
+      if (officeDays.length > 0) {
+        const result = autoSelectOfficeDays(officeDays);
+        if (result.selectedCount > 0) {
+          console.log(
+            `Auto-loaded ${result.selectedCount} office days for ${months[month]} ${year}`
+          );
+        } else {
+          console.log(
+            `Found office days but none match ${months[month]} ${year}`
+          );
+        }
+      }
+    });
+  }
 };
 
 manipulate();
