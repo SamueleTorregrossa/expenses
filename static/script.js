@@ -170,7 +170,7 @@ const generateReport = () => {
     return;
   }
 
-  // Generate the Excel file
+  // Generate the PDF file
   requestExcel(
     userName,
     userStreet,
@@ -183,6 +183,7 @@ const generateReport = () => {
   );
 };
 
+// Function to generate PDF
 const requestExcel = async (
   userName,
   userStreet,
@@ -195,6 +196,15 @@ const requestExcel = async (
 ) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Expenses");
+
+  // Calculate values beforehand (no formulas)
+  const distanceKm = Math.ceil(parseFloat(userDistance));
+  const ratePerKm = parseFloat(userRate);
+  const dailyDistance = distanceKm * 2; // Round trip
+  const dailyAmount = dailyDistance * ratePerKm;
+  const totalDays = datesOutput.length;
+  const totalDistance = dailyDistance * totalDays;
+  const totalAmount = dailyAmount * totalDays;
 
   // Define styles
   const headerFont = { name: "Verdana", size: 22 };
@@ -239,41 +249,33 @@ const requestExcel = async (
     cell.border = borderStyle;
   });
 
-  // Populate data rows
-  const distanceKm = Math.ceil(parseFloat(userDistance));
-  const ratePerKm = parseFloat(userRate); // Use the user-provided rate
-
+  // Populate data rows with precalculated values instead of formulas
   datesOutput.forEach((date) => {
     const description = `2 x ${distanceKm} km traveled`;
-    const amountFormula = `C${worksheet.lastRow.number + 1}*D${
-      worksheet.lastRow.number + 1
-    }`;
     worksheet.addRow([
       date,
       description,
-      distanceKm * 2,
+      dailyDistance,
       ratePerKm,
-      { formula: amountFormula },
+      dailyAmount, // Precalculated instead of formula
     ]);
   });
 
-  // Add totals
-  const sumStartRow = 6;
-  const sumEndRow = worksheet.lastRow.number;
+  // Add totals with precalculated values instead of SUM formulas
   worksheet.addRow([
     null,
     null,
-    { formula: `SUM(C${sumStartRow}:C${sumEndRow})` },
+    totalDistance, // Precalculated instead of SUM formula
     null,
-    { formula: `SUM(E${sumStartRow}:E${sumEndRow})` },
+    totalAmount, // Precalculated instead of SUM formula
   ]);
-  const emptyRow = worksheet.addRow([null, null, null, null, null]); // Empty row for spacing
-  const totalAmountRow = worksheet.addRow([
+  worksheet.addRow([null, null, null, null, null]); // Empty row for spacing
+  worksheet.addRow([
     null,
     null,
     "Total amount",
     null,
-    { formula: `SUM(E${sumStartRow}:E${sumEndRow})` },
+    totalAmount, // Precalculated instead of SUM formula
   ]);
 
   // Apply borders and fonts to data rows
@@ -304,25 +306,110 @@ const requestExcel = async (
     { width: 18 }, // Amount
   ];
 
-  const lastRow = worksheet.lastRow.number;
-  const lastColumn = worksheet.columns.length;
-
-  // Generate and download the Excel file
+  // Generate PDF file
   try {
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `expenses_${months[month]}_${year}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    }, 0);
+    // Create PDF using jsPDF with autoTable for better formatting
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Expense claim form", 105, 25, { align: "center" });
+
+    // Personal information
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+
+    const leftMargin = 20;
+    const rightMargin = 105;
+    let yPos = 45;
+
+    // Name and IBAN row
+    doc.setFont("helvetica", "bold");
+    doc.text("Name:", leftMargin, yPos);
+    doc.text("IBAN:", rightMargin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(userName, leftMargin + 25, yPos);
+    doc.text(userIban || "N/A", rightMargin + 25, yPos);
+
+    yPos += 15;
+
+    // Address row
+    doc.setFont("helvetica", "bold");
+    doc.text("Address:", leftMargin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${userStreet}, ${userZip}, ${userCity}`, leftMargin + 30, yPos);
+
+    yPos += 15;
+
+    // Period row
+    doc.setFont("helvetica", "bold");
+    doc.text("Period/month:", leftMargin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${month + 1}/${year}`, leftMargin + 45, yPos);
+
+    yPos += 25;
+
+    // Prepare table data
+    const tableData = [
+      ["Date", "Description", "# km's", "Rate per km", "Amount"],
+    ];
+
+    // Add data rows
+    datesOutput.forEach((date) => {
+      const description = `2 x ${distanceKm} km traveled`;
+      tableData.push([
+        date,
+        description,
+        dailyDistance.toString(),
+        `€${ratePerKm.toFixed(2)}`,
+        `€${dailyAmount.toFixed(2)}`,
+      ]);
+    });
+
+    // Add total row
+    tableData.push([
+      "",
+      "TOTAL:",
+      totalDistance.toString(),
+      "",
+      `€${totalAmount.toFixed(2)}`,
+    ]);
+
+    // Draw table using autoTable
+    doc.autoTable({
+      head: [tableData[0]],
+      body: tableData.slice(1),
+      startY: yPos,
+      theme: "grid",
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 25 },
+      },
+    });
+
+    // Final total
+    const finalY = doc.lastAutoTable.finalY + 20;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total amount: €${totalAmount.toFixed(2)}`, leftMargin, finalY);
+
+    // Save the PDF
+    const fileName = `expenses_${months[month]}_${year}.pdf`;
+    doc.save(fileName);
+
+    console.log(`PDF generated successfully: ${fileName}`);
   } catch (error) {
-    console.error("Error generating Excel file:", error);
+    console.error("Error generating PDF:", error);
   }
 };
 
