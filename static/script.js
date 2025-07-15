@@ -223,12 +223,7 @@ function addLoadOfficeDaysButton() {
             }, 2000);
           }
 
-          // Store in localStorage for persistence
-          const monthYear = `${months[targetMonth]}_${targetYear}`;
-          localStorage.setItem(
-            `office_days_${monthYear}`,
-            JSON.stringify(officeDays)
-          );
+          // No persistence - office days only exist until page reload
         } else {
           uploadButton.textContent = "❌ Invalid file format";
           setTimeout(() => {
@@ -284,11 +279,10 @@ function getInputFromLocalStorage() {
   });
 }
 
-// Function to load office days from tracker data or localStorage
+// Function to load office days from server files only (not used for auto-loading)
 async function loadOfficeDays() {
   const monthYear = `${months[month]}_${year}`;
 
-  // First try to load from server files
   try {
     const response = await fetch(`office_days/${monthYear}/office_days.json`);
 
@@ -298,18 +292,6 @@ async function loadOfficeDays() {
     }
   } catch (error) {
     console.log("No office days file found on server for this month");
-  }
-
-  // Fallback to localStorage (uploaded files)
-  try {
-    const stored = localStorage.getItem(`office_days_${monthYear}`);
-    if (stored) {
-      const officeDays = JSON.parse(stored);
-      console.log("Loaded office days from localStorage");
-      return officeDays || [];
-    }
-  } catch (error) {
-    console.log("No office days found in localStorage");
   }
 
   return [];
@@ -732,23 +714,7 @@ const manipulate = () => {
   // Attach event listeners to the date elements
   attach_date_listeners();
 
-  // Auto-load office days for this month (only when calendar is active, not during game)
-  if (isCalendarActive) {
-    loadOfficeDays().then((officeDays) => {
-      if (officeDays.length > 0) {
-        const result = autoSelectOfficeDays(officeDays);
-        if (result.selectedCount > 0) {
-          console.log(
-            `Auto-loaded ${result.selectedCount} office days for ${months[month]} ${year}`
-          );
-        } else {
-          console.log(
-            `Found office days but none match ${months[month]} ${year}`
-          );
-        }
-      }
-    });
-  }
+  // No auto-loading - office days only selected when explicitly uploaded
 };
 
 manipulate();
