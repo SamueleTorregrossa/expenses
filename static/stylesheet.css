@@ -55,8 +55,8 @@
   background: var(--bg-secondary);
   border: 2px solid var(--accent-primary);
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 42px;
+  height: 42px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -83,13 +83,13 @@
 .theme-toggle:hover {
   transform: scale(1.1);
   background: var(--accent-primary);
-  color: var(--bg-secondary);
 }
 
 .theme-toggle .material-symbols-rounded {
-  font-size: 24px;
+  font-size: 20px;
   color: var(--accent-primary);
   transition: all 0.3s ease;
+  pointer-events: none; /* Prevents icon from interfering with button hover */
 }
 
 .theme-toggle:hover .material-symbols-rounded {
