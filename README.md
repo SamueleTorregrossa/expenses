@@ -30,9 +30,9 @@ This is a web application that generates travel expense reports in PDF format ba
 3. **Generate report**: Click "Generate Report" to download your PDF expense report
 
 ### Office Days File Format
-Upload a JSON file containing an array of dates in "D/M/YYYY" format:
+Upload a JSON file containing an array of dates in "D/M/YYYY" format. Single-digit days and months can be written without leading zeros (e.g., `1/11/2024`), but leading zeros are also accepted (e.g., `01/11/2024`).
 ```json
-["1/11/2024", "4/11/2024", "5/11/2024", "6/11/2024"]
+["1/11/2024", "01/11/2024", "4/11/2024", "04/11/2024", "5/11/2024", "6/11/2024"]
 ```
 
 ## Data Security
