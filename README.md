@@ -7,6 +7,7 @@ This is a web application that generates travel expense reports in PDF format ba
 ## Features
 
 ### 📅 Manual Date Selection
+
 - Interactive calendar interface for selecting travel dates
 - Weekends are automatically excluded from selection
 - Navigate between months using the calendar controls
@@ -29,12 +30,13 @@ This is a web application that generates travel expense reports in PDF format ba
 3. **Generate report**: Click "Generate Report" to download your PDF expense report
 
 ### Office Days File Format
-Upload a JSON file containing an array of dates in "DD/MM/YYYY" format:
+Upload a JSON file containing an array of dates in "D/M/YYYY" format:
 ```json
 ["1/11/2024", "4/11/2024", "5/11/2024", "6/11/2024"]
 ```
 
 ## Data Security
+
 - PDF generation is performed entirely in your browser - no data is sent to external servers
 - Personal information is stored locally using browser cookies for convenience
 - Office days from uploaded files are temporary and not persisted
