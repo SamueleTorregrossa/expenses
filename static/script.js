@@ -1,3 +1,37 @@
+// Theme Management
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  const themeIcon = document.getElementById('theme-icon');
+  
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeIcon.textContent = 'light_mode';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    themeIcon.textContent = 'dark_mode';
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const themeIcon = document.getElementById('theme-icon');
+  
+  if (currentTheme === 'light') {
+    // Switch to dark mode
+    document.documentElement.removeAttribute('data-theme');
+    themeIcon.textContent = 'dark_mode';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    // Switch to light mode
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeIcon.textContent = 'light_mode';
+    localStorage.setItem('theme', 'light');
+  }
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', initializeTheme);
+
 let date = new Date();
 let year = date.getFullYear();
 let month = date.getMonth();
