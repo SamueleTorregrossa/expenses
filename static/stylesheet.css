@@ -1,9 +1,108 @@
-/* Base Styles */
+/* CSS Custom Properties for Theme Management */
+:root {
+  /* Dark Theme (Default) */
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2c2c2c;
+  --text-primary: #ddd;
+  --text-secondary: #eee;
+  --text-placeholder: #df9c9c;
+  --text-placeholder-optional: #949494;
+  --text-inactive: #777;
+  --text-inactive-today: #aaa;
+  --border-color: #555;
+  --border-divider: #333;
+  --hover-bg: #444;
+  --accent-primary: #41ad72;
+  --accent-secondary: #36755b;
+  --accent-tertiary: #2e5e47;
+  --snake-body: #236138;
+  --snake-head: #318356;
+  --today-bg: #657ec9;
+  --selected-today: rgb(106, 186, 197);
+  --nav-icon: #aeabab;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f8f9fa;
+  --text-primary: #2c3e50;
+  --text-secondary: #34495e;
+  --text-placeholder: #e74c3c;
+  --text-placeholder-optional: #7f8c8d;
+  --text-inactive: #bdc3c7;
+  --text-inactive-today: #95a5a6;
+  --border-color: #ddd;
+  --border-divider: #e9ecef;
+  --hover-bg: #e9ecef;
+  --accent-primary: #27ae60;
+  --accent-secondary: #219a52;
+  --accent-tertiary: #1e8449;
+  --snake-body: #1e8449;
+  --snake-head: #27ae60;
+  --today-bg: #3498db;
+  --selected-today: #5dade2;
+  --nav-icon: #7f8c8d;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent-primary);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Light theme specific enhancements */
+[data-theme="light"] .theme-toggle {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .calendar-container,
+[data-theme="light"] .form-container {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .footer {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  background: var(--accent-primary);
+}
+
+.theme-toggle .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--accent-primary);
+  transition: all 0.3s ease;
+  pointer-events: none; /* Prevents icon from interfering with button hover */
+}
+
+.theme-toggle:hover .material-symbols-rounded {
+  color: var(--bg-secondary);
+}
+
+/* Base Styles with smooth transitions */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
@@ -12,8 +111,8 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 20px;
-  background: #121212;
-  color: #ddd;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Font Face */
@@ -43,7 +142,7 @@ body {
 /* Shared Container Styles */
 .calendar-container,
 .form-container {
-  background: #1e1e1e; /* Dark container background */
+  background: var(--bg-secondary);
   border-radius: 10px;
   padding: 20px; /* Inner spacing */
   height: 500px; /* Fixed height for both containers */
@@ -80,7 +179,7 @@ body {
   align-items: center;
   padding: 10px 20px; /* Adjusted padding for better spacing */
   justify-content: space-between;
-  border-bottom: 1px solid #333; /* Divider */
+  border-bottom: 1px solid var(--border-divider);
   width: 100%; /* Ensures header spans the full width of the container */
 }
 
@@ -98,7 +197,7 @@ body {
   line-height: 38px;
   border-radius: 50%;
   user-select: none;
-  color: #aeabab;
+  color: var(--nav-icon);
   font-size: 1.9rem;
   transition: background 0.3s, color 0.3s;
   display: flex; /* Centers icon vertically and horizontally */
@@ -111,14 +210,14 @@ span:last-child {
 }
 
 span:hover {
-  background: #444; /* Darker hover background */
-  color: #ddd; /* Lighten icon/text on hover */
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 header .calendar-current-date {
   font-weight: 500;
   font-size: 1.45rem;
-  color: #ddd;
+  color: var(--text-primary);
   text-align: center; /* Centers the current date text */
   flex-grow: 1; /* Allows the date to take up available space */
 }
@@ -162,19 +261,19 @@ header .calendar-current-date {
 }
 
 .calendar-dates li.inactive {
-  color: #777;
+  color: var(--text-inactive);
 }
 
 .calendar-dates li.inactive#today {
-  color: #aaa;
+  color: var(--text-inactive-today);
 }
 
 .calendar-dates li.active {
-  color: #eee;
+  color: var(--text-secondary);
 }
 
 .calendar-dates li#today::before {
-  background: #657ec9;
+  background: var(--today-bg);
 }
 
 .calendar-dates li::before {
@@ -190,39 +289,39 @@ header .calendar-current-date {
 }
 
 .calendar-dates li.selected::before {
-  background: #41ad72; /* Accent color for selected date */
+  background: var(--accent-primary);
 }
 .calendar-dates li.selected#today::before {
-  background: rgb(106, 186, 197); /* Accent color for selected date */
+  background: var(--selected-today);
 }
 .calendar-dates li.selected#head::before {
-  background: #318356; /* Accent color for selected date */
+  background: var(--snake-head);
 }
 
 .calendar-dates li.active:not(.selected):hover::before {
-  background: #444; /* Hover background for dates */
+  background: var(--hover-bg);
 }
 
 #snake::before {
-  background: #236138;
+  background: var(--snake-body);
   width: 25px;
   height: 25px;
 }
 
 #head::before {
-  background: #318356;
+  background: var(--snake-head);
   width: 30px;
   height: 30px;
 }
 
 #fruit::before {
-  background: #657ec9;
+  background: var(--today-bg);
   width: 25px;
   height: 25px;
 }
 
 .distance-info {
-  background: #1e1e1e; /* Dark background */
+  background: var(--bg-secondary);
   border-radius: 10px;
   width: 100%; /* Fill the parent container */
   height: 100%; /* Ensure full height */
@@ -243,30 +342,30 @@ header .calendar-current-date {
 
 /* Text input */
 input[type="text"] {
-  border: 1px solid #555;
-  background-color: #2c2c2c;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
   border-radius: 5px;
   font-size: 1.1rem;
   height: 40px;
   text-align: left;
   width: 100%;
-  color: #eee;
+  color: var(--text-secondary);
   padding: 0 10px; /* Added horizontal padding to prevent text from touching sides */
 }
 
 input[type="text"]::placeholder {
-  color: #df9c9c;
+  color: var(--text-placeholder);
 }
 
 /* for the iban the color of the placeholder can be #eee since it's optional */
 input[type="text"]#iban::placeholder {
-  color: #949494;
+  color: var(--text-placeholder-optional);
 }
 
 /* Button */
 .send-button {
-  background: #36755b;
-  color: #eee;
+  background: var(--accent-secondary);
+  color: var(--text-secondary);
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -279,12 +378,12 @@ input[type="text"]#iban::placeholder {
 }
 
 .send-button:hover {
-  background: #2e5e47; /* Darker shade on hover */
+  background: var(--accent-tertiary);
 }
 
 /* Footer styles */
 .footer {
-  background: #1e1e1e;
+  background: var(--bg-secondary);
   padding: 20px;
   width: 100%;
   box-sizing: border-box;
@@ -302,7 +401,7 @@ input[type="text"]#iban::placeholder {
 
 .footer-content p {
   font-size: 1rem;
-  color: #ddd;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   margin: 5px;
@@ -311,7 +410,7 @@ input[type="text"]#iban::placeholder {
 .footer-content a.github-link {
   display: inline-flex;
   align-items: center;
-  color: #41ad72;
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color 0.3s;
   font-weight: 500;
@@ -319,23 +418,23 @@ input[type="text"]#iban::placeholder {
 }
 
 .footer-content a {
-  color: #41ad72;
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color 0.3s;
 }
 
 .footer-content a:hover {
-  color: #36755b; /* Darker shade on hover */
+  color: var(--accent-secondary);
 }
 
 .footer-content a.github-link:hover {
-  color: #36755b; /* Darker shade on hover */
+  color: var(--accent-secondary);
 }
 
 .github-logo {
   width: 20px;
   height: 20px;
-  fill: #41ad72; /* Match the link color */
+  fill: var(--accent-primary);
   transition: fill 0.3s;
 }
 
@@ -345,7 +444,7 @@ input[type="text"]#iban::placeholder {
   left: 20px;
   width: 70px;
   height: 70px;
-  fill: #41ad72; /* Match the link color */
+  fill: var(--accent-primary);
   transition: fill 0.3s, transform 1s;
   z-index: 1;
 }
@@ -353,7 +452,7 @@ input[type="text"]#iban::placeholder {
 /* Make it a fun font for snake game */
 .gameTitle {
   font-size: 3.5rem;
-  color: #121212;
+  color: var(--bg-primary);
   margin: 5px;
   font-family: "Hachi Maru Pop", cursive;
   font-weight: bold;
@@ -378,7 +477,7 @@ input[type="text"]#iban::placeholder {
 
 .move-up {
   transform: translateY(-100px);
-  color: #41ad72;
+  color: var(--accent-primary);
 }
 
 .move-down {
@@ -386,7 +485,7 @@ input[type="text"]#iban::placeholder {
 }
 
 .github-link:hover .github-logo {
-  fill: #36755b; /* Darker shade on hover */
+  fill: var(--accent-secondary);
 }
 
 /* Mobile Responsive Styles */

@@ -1,3 +1,60 @@
+// Theme Management
+function initializeTheme() {
+  let savedTheme = 'dark';
+  try {
+    savedTheme = localStorage.getItem('theme') || 'dark';
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+  }
+  
+  const themeIcon = document.getElementById('theme-icon');
+  if (!themeIcon) {
+    console.error('Theme icon element not found');
+    return;
+  }
+  
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeIcon.textContent = 'light_mode';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    themeIcon.textContent = 'dark_mode';
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const themeIcon = document.getElementById('theme-icon');
+  
+  if (!themeIcon) {
+    console.error('Theme icon element not found');
+    return;
+  }
+  
+  if (currentTheme === 'light') {
+    // Switch to dark mode
+    document.documentElement.removeAttribute('data-theme');
+    themeIcon.textContent = 'dark_mode';
+    try {
+      localStorage.setItem('theme', 'dark');
+    } catch (error) {
+      console.error('Failed to save theme to localStorage:', error);
+    }
+  } else {
+    // Switch to light mode
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeIcon.textContent = 'light_mode';
+    try {
+      localStorage.setItem('theme', 'light');
+    } catch (error) {
+      console.error('Failed to save theme to localStorage:', error);
+    }
+  }
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', initializeTheme);
+
 let date = new Date();
 let year = date.getFullYear();
 let month = date.getMonth();
