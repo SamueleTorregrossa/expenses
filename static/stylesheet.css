@@ -141,17 +141,26 @@ body {
 
 /* Shared Container Styles */
 .calendar-container,
-.form-container {
+.form-container,
+.email-container {
   background: var(--bg-secondary);
   border-radius: 10px;
   padding: 20px; /* Inner spacing */
-  height: 500px; /* Fixed height for both containers */
+  height: 500px; /* Fixed height for all containers */
   display: flex;
   flex-direction: column; /* Vertical stacking of child elements */
-  justify-content: space-between; /* Distribute space between elements */
-  flex: 0 1 450px; /* Allows flexibility while setting a base width */
+  flex: 1 1 33.33%; /* Equal width for 3 columns */
   margin: 0 10px; /* Horizontal spacing between containers */
   z-index: 2;
+}
+
+/* Container-specific layout adjustments */
+.calendar-container {
+  justify-content: space-between;
+}
+
+.form-container {
+  justify-content: space-between;
 }
 
 .outerContainer {
@@ -381,6 +390,75 @@ input[type="text"]#iban::placeholder {
   background: var(--accent-tertiary);
 }
 
+/* Email Container Specific Styles */
+.email-container {
+  justify-content: flex-start;
+  gap: 15px;
+}
+
+.email-container h3 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+#email-template {
+  width: 100%;
+  min-height: 280px;
+  padding: 15px;
+  border: 1px solid var(--border-divider);
+  border-radius: 5px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
+
+#email-template:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.email-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.copy-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-secondary);
+  color: var(--text-secondary);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  align-self: flex-start;
+  transition: background 0.3s ease;
+}
+
+.copy-button:hover {
+  background: var(--accent-tertiary);
+}
+
+.copy-button .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.copy-feedback {
+  color: var(--accent-primary);
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 /* Footer styles */
 .footer {
   background: var(--bg-secondary);
@@ -497,7 +575,8 @@ input[type="text"]#iban::placeholder {
   }
 
   .calendar-container,
-  .form-container {
+  .form-container,
+  .email-container {
     flex: none;
     width: 100%;
     margin: 10px 0; /* Vertical spacing between containers */
@@ -524,6 +603,20 @@ input[type="text"]#iban::placeholder {
     font-size: 1rem; /* Adjust button font size */
     padding: 8px 16px; /* Adjust button padding */
     width: 80%; /* Adjust button width */
+  }
+  
+  .email-container h3 {
+    font-size: 1.1rem;
+  }
+  
+  #email-template {
+    font-size: 0.9rem;
+    min-height: 200px;
+  }
+  
+  .copy-button {
+    font-size: 0.95rem;
+    padding: 8px 16px;
   }
 
   .footer {
