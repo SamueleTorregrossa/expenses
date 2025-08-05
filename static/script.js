@@ -117,6 +117,16 @@ function copyEmailToClipboard() {
     return;
   }
   
+  // Save HR name to localStorage when copying email
+  const hrName = document.querySelector("#hr-name").value.trim();
+  if (hrName) {
+    try {
+      localStorage.setItem("hr-name", hrName);
+    } catch (error) {
+      console.warn('Failed to save HR name to localStorage:', error);
+    }
+  }
+  
   // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(emailTextarea.value)
@@ -430,7 +440,7 @@ function saveToLocalStorage() {
 
 // Function to retrieve input values from localStorage
 function getInputFromLocalStorage() {
-  const fields = ["name", "street", "zip", "city", "iban", "distance", "rate"];
+  const fields = ["name", "street", "zip", "city", "iban", "distance", "rate", "hr-name"];
 
   fields.forEach((field) => {
     const value = localStorage.getItem(field);
