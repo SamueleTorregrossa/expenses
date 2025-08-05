@@ -55,6 +55,97 @@ function toggleTheme() {
 // Initialize theme on page load
 document.addEventListener('DOMContentLoaded', initializeTheme);
 
+// Email template generation
+function generateEmailTemplate() {
+  const userName = document.querySelector("#name").value.trim();
+  const hrName = document.querySelector("#hr-name").value.trim() || "HR Department";
+  const selectedDates = document.querySelectorAll(".selected");
+  
+  if (!userName || selectedDates.length === 0) {
+    document.getElementById('email-template').value = '';
+    return;
+  }
+  
+  // Get dates from selected elements
+  const datesArray = Array.from(selectedDates).map(date => date.dataset.date);
+  
+  // Analyze months to get month and year
+  const monthAnalysis = analyzeOfficeDaysMonths(datesArray);
+  
+  if (monthAnalysis.singleMonth) {
+    const monthName = months[monthAnalysis.singleMonth.month];
+    const year = monthAnalysis.singleMonth.year;
+    
+    // Generate email text
+    const emailText = `Dear ${hrName},
+
+Please find attached my travel expense report for ${monthName} ${year}.
+Let me know if you have any questions.
+
+Best wishes,
+${userName}`;
+    
+    document.getElementById('email-template').value = emailText;
+  } else if (monthAnalysis.isMixed) {
+    // Handle mixed months
+    const monthsList = monthAnalysis.monthsFound.join(', ');
+    const emailText = `Dear ${hrName},
+
+Please find attached my travel expense report for ${monthsList}.
+Let me know if you have any questions.
+
+Best wishes,
+${userName}`;
+    
+    document.getElementById('email-template').value = emailText;
+  }
+}
+
+// Copy email to clipboard
+function copyEmailToClipboard() {
+  const emailTextarea = document.getElementById('email-template');
+  const feedback = document.getElementById('copy-feedback');
+  
+  if (!emailTextarea.value) {
+    alert('Please generate an email template first by selecting dates and entering your name.');
+    return;
+  }
+  
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(emailTextarea.value)
+      .then(() => {
+        showCopyFeedback(feedback);
+      })
+      .catch(() => {
+        fallbackCopyToClipboard(emailTextarea, feedback);
+      });
+  } else {
+    fallbackCopyToClipboard(emailTextarea, feedback);
+  }
+}
+
+// Fallback for older browsers
+function fallbackCopyToClipboard(textarea, feedback) {
+  textarea.select();
+  textarea.setSelectionRange(0, 99999); // For mobile devices
+  
+  try {
+    document.execCommand('copy');
+    showCopyFeedback(feedback);
+  } catch (err) {
+    alert('Failed to copy email. Please select the text manually and copy.');
+  }
+}
+
+// Show copy feedback
+function showCopyFeedback(feedback) {
+  feedback.style.opacity = '1';
+  setTimeout(() => {
+    feedback.style.opacity = '0';
+  }, 2000);
+}
+
 let date = new Date();
 let year = date.getFullYear();
 let month = date.getMonth();
@@ -101,6 +192,8 @@ const attach_date_listeners = () => {
           } else {
             dateIcon.classList.add("selected");
           }
+          // Update email template when dates change
+          generateEmailTemplate();
         }
       });
     }
@@ -146,6 +239,16 @@ const attachInputListeners = () => {
   requiredInputs.forEach((input) => {
     input.addEventListener("input", updateSendButtonState);
   });
+  
+  // Add listeners for email generation
+  const nameInput = document.querySelector("#name");
+  const hrNameInput = document.querySelector("#hr-name");
+  if (nameInput) {
+    nameInput.addEventListener("input", generateEmailTemplate);
+  }
+  if (hrNameInput) {
+    hrNameInput.addEventListener("input", generateEmailTemplate);
+  }
 
   calendarDates.addEventListener("click", () => {
     setTimeout(updateSendButtonState, 0); // Delay to allow click event to modify "selected" classes
@@ -159,6 +262,9 @@ const attachInputListeners = () => {
 document.addEventListener("DOMContentLoaded", () => {
   const sendButton = document.querySelector("#send-button");
   sendButton.hidden = true;
+
+  // Load saved input values from localStorage
+  getInputFromLocalStorage();
 
   // Attach listeners for input fields and dates
   attachInputListeners();
@@ -237,35 +343,19 @@ function addLoadOfficeDaysButton() {
           const targetMonth = monthAnalysis.singleMonth.month;
           const targetYear = monthAnalysis.singleMonth.year;
 
-          if (month !== targetMonth || year !== targetYear) {
-            // Update global month/year variables
-            month = targetMonth;
-            year = targetYear;
-            date = new Date(year, month, 1);
+          // Always navigate to the target month to ensure calendar is in sync
+          // Update global month/year variables
+          month = targetMonth;
+          year = targetYear;
+          date = new Date(year, month, 1);
 
-            // Regenerate calendar for the correct month
-            manipulate();
+          // Regenerate calendar for the correct month
+          manipulate();
 
-            uploadButton.textContent = `📅 Moved to ${monthAnalysis.singleMonth.monthYear}`;
-            setTimeout(() => {
-              uploadButton.textContent = "📁";
-            }, 2000);
+          uploadButton.textContent = `📅 Loading ${monthAnalysis.singleMonth.monthYear}...`;
 
-            // Wait a moment for calendar to render, then select dates
-            setTimeout(() => {
-              document
-                .querySelectorAll(".calendar-dates .selected")
-                .forEach((el) => {
-                  el.classList.remove("selected");
-                });
-
-              const result = autoSelectOfficeDays(officeDays);
-              console.log(
-                `Auto-navigated to ${monthAnalysis.singleMonth.monthYear} and selected ${result.selectedCount} office days`
-              );
-            }, 100);
-          } else {
-            // Already on correct month, just select the dates
+          // Wait a moment for calendar to render, then select dates
+          setTimeout(() => {
             document
               .querySelectorAll(".calendar-dates .selected")
               .forEach((el) => {
@@ -273,12 +363,15 @@ function addLoadOfficeDaysButton() {
               });
 
             const result = autoSelectOfficeDays(officeDays);
-            uploadButton.textContent = `✅ ${result.selectedCount} selected`;
-
+            uploadButton.textContent = `✅ ${result.selectedCount} days selected`;
+            console.log(
+              `Navigated to ${monthAnalysis.singleMonth.monthYear} and selected ${result.selectedCount} office days`
+            );
+            
             setTimeout(() => {
               uploadButton.textContent = "📁";
             }, 2000);
-          }
+          }, 100);
 
           // No persistence - office days only exist until page reload
         } else {
@@ -405,6 +498,9 @@ function autoSelectOfficeDays(officeDays) {
 
   // Update send button state after auto-selecting
   updateSendButtonState();
+  
+  // Update email template after auto-selecting dates
+  generateEmailTemplate();
 
   const monthAnalysis = analyzeOfficeDaysMonths(officeDays);
   return { selectedCount, totalDates, monthAnalysis };
@@ -775,7 +871,6 @@ const manipulate = () => {
 };
 
 manipulate();
-getInputFromLocalStorage();
 
 // Attach a click event listener to each icon
 prenexIcons.forEach((icon) => {
