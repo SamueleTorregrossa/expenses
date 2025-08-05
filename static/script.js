@@ -58,7 +58,13 @@ document.addEventListener('DOMContentLoaded', initializeTheme);
 // Email template generation
 function generateEmailTemplate() {
   const userName = document.querySelector("#name").value.trim();
-  const hrName = document.querySelector("#hr-name").value.trim() || "HR Department";
+  let hrName = document.querySelector("#hr-name").value.trim();
+  
+  // Input validation with fallback
+  if (!hrName) {
+    hrName = "HR Department";
+  }
+  
   const selectedDates = document.querySelectorAll(".selected");
   
   if (!userName || selectedDates.length === 0) {
@@ -117,10 +123,12 @@ function copyEmailToClipboard() {
       .then(() => {
         showCopyFeedback(feedback);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.warn('Clipboard API failed, using fallback method:', error);
         fallbackCopyToClipboard(emailTextarea, feedback);
       });
   } else {
+    console.info('Clipboard API not available, using fallback method');
     fallbackCopyToClipboard(emailTextarea, feedback);
   }
 }
@@ -131,10 +139,16 @@ function fallbackCopyToClipboard(textarea, feedback) {
   textarea.setSelectionRange(0, 99999); // For mobile devices
   
   try {
-    document.execCommand('copy');
-    showCopyFeedback(feedback);
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopyFeedback(feedback);
+    } else {
+      console.error('execCommand copy returned false');
+      alert('Copy failed. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac).');
+    }
   } catch (err) {
-    alert('Failed to copy email. Please select the text manually and copy.');
+    console.error('execCommand copy failed:', err);
+    alert('Copy operation not supported. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac).');
   }
 }
 
