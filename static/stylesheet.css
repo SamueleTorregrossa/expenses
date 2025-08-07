@@ -233,7 +233,7 @@ header .calendar-current-date {
 }
 
 .calendar-body {
-  padding: 20px;
+  padding: 5px;
   width: 100%; /* Ensures calendar body spans the full width */
 }
 
@@ -626,4 +626,5 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
+
 
