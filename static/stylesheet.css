@@ -229,6 +229,7 @@ header .calendar-current-date {
   color: var(--text-primary);
   text-align: center; /* Centers the current date text */
   flex-grow: 1; /* Allows the date to take up available space */
+  white-space: nowrap; /* Prevents text wrapping to maintain layout */
 }
 
 .calendar-body {
@@ -625,3 +626,4 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
+
