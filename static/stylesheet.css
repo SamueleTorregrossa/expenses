@@ -233,7 +233,7 @@ header .calendar-current-date {
 }
 
 .calendar-body {
-  padding: 20px;
+  padding: 5px;
   width: 100%; /* Ensures calendar body spans the full width */
 }
 
@@ -401,6 +401,11 @@ input[type="text"]#iban::placeholder {
   color: var(--text-primary);
   margin: 0;
   font-size: 1.2rem;
+  text-align: center;
+}
+
+.email-container .input-container {
+  margin: 7px;
 }
 
 #email-template {
@@ -411,7 +416,7 @@ input[type="text"]#iban::placeholder {
   border-radius: 5px;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: inherit;
+  font-family: "Poppins", sans-serif;
   font-size: 0.95rem;
   resize: vertical;
   box-sizing: border-box;
@@ -451,6 +456,11 @@ input[type="text"]#iban::placeholder {
 
 .copy-button .material-symbols-rounded {
   font-size: 20px;
+}
+
+/* Light theme specific override for copy button text color */
+[data-theme="light"] .copy-button {
+  color: #ffffff;
 }
 
 .copy-feedback {
@@ -533,7 +543,7 @@ input[type="text"]#iban::placeholder {
   font-size: 3.5rem;
   color: var(--bg-primary);
   margin: 5px;
-  font-family: "Hachi Maru Pop", cursive;
+  font-family: "Poppins", sans-serif;
   font-weight: bold;
   transition: all 0.3s;
 }
@@ -626,4 +636,3 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
-
