@@ -404,6 +404,10 @@ input[type="text"]#iban::placeholder {
   text-align: center;
 }
 
+.email-container .input-container {
+  margin: 7px;
+}
+
 #email-template {
   width: 100%;
   min-height: 280px;
@@ -632,6 +636,7 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
+
 
 
 
