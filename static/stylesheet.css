@@ -539,7 +539,7 @@ input[type="text"]#iban::placeholder {
   font-size: 3.5rem;
   color: var(--bg-primary);
   margin: 5px;
-  font-family: "Hachi Maru Pop", cursive;
+  font-family: "Poppins", sans-serif;
   font-weight: bold;
   transition: all 0.3s;
 }
@@ -632,6 +632,7 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
+
 
 
 
