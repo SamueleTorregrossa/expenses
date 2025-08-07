@@ -1,13 +1,112 @@
-// Theme Management
-function initializeTheme() {
-  let savedTheme = "dark";
-  try {
-    savedTheme = localStorage.getItem("theme") || "dark";
-  } catch (error) {
-    console.error("Error accessing localStorage:", error);
-  }
+// ==================== CONSTANTS ====================
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
+const TIMEOUTS = {
+  COPY_FEEDBACK: 2000,
+  BUTTON_RESET: 2000,
+  ERROR_DISPLAY: 3000,
+  CALENDAR_RENDER_DELAY: 100,
+};
+
+const SELECTORS = {
+  CALENDAR_DATES: ".calendar-dates",
+  CALENDAR_CURRENT_DATE: ".calendar-current-date",
+  SEND_BUTTON: "#send-button",
+  COPY_BUTTON: ".copy-button",
+  EMAIL_TEMPLATE: "#email-template",
+};
+
+// ==================== GLOBAL STATE ====================
+let currentDate = new Date();
+let currentYear = currentDate.getFullYear();
+let currentMonth = currentDate.getMonth();
+let isCalendarActive = true;
+let calendarElements = [];
+
+// Snake game state
+let snakeGame = {
+  active: false,
+  bodyValues: [],
+  position: [0, -1],
+  fruitPosition: [0, 0],
+  size: 1,
+  period: 500,
+  direction: [0, 1],
+  keyDirection: 0,
+  keyQueue: [],
+  isOver: false,
+  isTerminated: false,
+};
+
+// ==================== UTILITIES ====================
+
+/**
+ * Safely access localStorage
+ */
+function getFromStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.error(`Error accessing localStorage for key "${key}":`, error);
+    return null;
+  }
+}
+
+/**
+ * Safely save to localStorage
+ */
+function setInStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.error(`Failed to save "${key}" to localStorage:`, error);
+    return false;
+  }
+}
+
+/**
+ * Update button disabled state
+ */
+function setButtonState(button, enabled) {
+  if (!button) return;
+
+  button.disabled = !enabled;
+  button.style.opacity = enabled ? "1" : "0.5";
+  button.style.cursor = enabled ? "pointer" : "not-allowed";
+}
+
+/**
+ * Show temporary feedback
+ */
+function showFeedback(element, duration = TIMEOUTS.COPY_FEEDBACK) {
+  if (!element) return;
+
+  element.style.opacity = "1";
+  setTimeout(() => {
+    element.style.opacity = "0";
+  }, duration);
+}
+
+// ==================== THEME MANAGEMENT ====================
+
+function initializeTheme() {
+  const savedTheme = getFromStorage("theme") || "dark";
   const themeIcon = document.getElementById("theme-icon");
+
   if (!themeIcon) {
     console.error("Theme icon element not found");
     return;
@@ -32,460 +131,189 @@ function toggleTheme() {
   }
 
   if (currentTheme === "light") {
-    // Switch to dark mode
     document.documentElement.removeAttribute("data-theme");
     themeIcon.textContent = "dark_mode";
-    try {
-      localStorage.setItem("theme", "dark");
-    } catch (error) {
-      console.error("Failed to save theme to localStorage:", error);
-    }
+    setInStorage("theme", "dark");
   } else {
-    // Switch to light mode
     document.documentElement.setAttribute("data-theme", "light");
     themeIcon.textContent = "light_mode";
-    try {
-      localStorage.setItem("theme", "light");
-    } catch (error) {
-      console.error("Failed to save theme to localStorage:", error);
-    }
+    setInStorage("theme", "light");
   }
 }
 
-// Initialize theme on page load
-document.addEventListener("DOMContentLoaded", initializeTheme);
+// ==================== CALENDAR SYSTEM ====================
 
-// Update copy button state based on email template content
-function updateCopyButtonState() {
-  const copyButton = document.querySelector(".copy-button");
-  const emailTextarea = document.getElementById("email-template");
+/**
+ * Render the calendar for current month/year
+ */
+function renderCalendar() {
+  if (!isCalendarActive) return;
 
-  if (emailTextarea && copyButton) {
-    if (emailTextarea.value.trim()) {
-      copyButton.disabled = false;
-      copyButton.style.opacity = "1";
-      copyButton.style.cursor = "pointer";
-    } else {
-      copyButton.disabled = true;
-      copyButton.style.opacity = "0.5";
-      copyButton.style.cursor = "not-allowed";
-    }
-  }
-}
+  const calendarDates = document.querySelector(SELECTORS.CALENDAR_DATES);
+  const currentDateElement = document.querySelector(
+    SELECTORS.CALENDAR_CURRENT_DATE
+  );
 
-// Email template generation
-function generateEmailTemplate() {
-  const userName = document.querySelector("#name").value.trim();
-  let hrName = document.querySelector("#hr-name").value.trim();
+  // Clear previous calendar
+  calendarDates.innerHTML = "";
+  calendarElements = [];
 
-  // Input validation with fallback
-  if (!hrName) {
-    hrName = "HR Department";
-  }
+  // Calculate calendar grid
+  let firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay() - 1;
+  if (firstDayOfMonth === -1) firstDayOfMonth = 6; // Adjust for Monday start
 
-  const selectedDates = document.querySelectorAll(".selected");
+  const lastDateOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const lastDayOfMonth = new Date(
+    currentYear,
+    currentMonth,
+    lastDateOfMonth
+  ).getDay();
+  const lastDateOfPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
 
-  if (!userName || selectedDates.length === 0) {
-    document.getElementById("email-template").value = "";
-    updateCopyButtonState(); // Update button state when clearing template
-    return;
-  }
-
-  // Get dates from selected elements
-  const datesArray = Array.from(selectedDates).map((date) => date.dataset.date);
-
-  // Analyze months to get month and year
-  const monthAnalysis = analyzeOfficeDaysMonths(datesArray);
-
-  if (monthAnalysis.singleMonth) {
-    const monthName = months[monthAnalysis.singleMonth.month];
-    const year = monthAnalysis.singleMonth.year;
-
-    // Generate email text
-    const emailText = `Dear ${hrName},
-
-Please find attached my travel expense report for ${monthName} ${year}.
-Let me know if you have any questions.
-
-Best wishes,
-${userName}`;
-
-    document.getElementById("email-template").value = emailText;
-  } else if (monthAnalysis.isMixed) {
-    // Handle mixed months
-    const monthsList = monthAnalysis.monthsFound.join(", ");
-    const emailText = `Dear ${hrName},
-
-Please find attached my travel expense report for ${monthsList}.
-Let me know if you have any questions.
-
-Best wishes,
-${userName}`;
-
-    document.getElementById("email-template").value = emailText;
-  }
-
-  // Update copy button state after generating email
-  updateCopyButtonState();
-}
-
-// Copy email to clipboard
-function copyEmailToClipboard() {
-  const emailTextarea = document.getElementById("email-template");
-  const feedback = document.getElementById("copy-feedback");
-
-  if (!emailTextarea.value) {
-    return; // Button should be disabled, but double-check
-  }
-
-  // Save HR name to localStorage when copying email
-  const hrName = document.querySelector("#hr-name").value.trim();
-  if (hrName) {
-    try {
-      localStorage.setItem("hr-name", hrName);
-    } catch (error) {
-      console.warn("Failed to save HR name to localStorage:", error);
-    }
-  }
-
-  // Try modern clipboard API first
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard
-      .writeText(emailTextarea.value)
-      .then(() => {
-        showCopyFeedback(feedback);
-      })
-      .catch((error) => {
-        console.warn("Clipboard API failed, using fallback method:", error);
-        fallbackCopyToClipboard(emailTextarea, feedback);
-      });
-  } else {
-    console.info("Clipboard API not available, using fallback method");
-    fallbackCopyToClipboard(emailTextarea, feedback);
-  }
-}
-
-// Fallback for older browsers
-function fallbackCopyToClipboard(textarea, feedback) {
-  textarea.select();
-  textarea.setSelectionRange(0, 99999); // For mobile devices
-
-  try {
-    const successful = document.execCommand("copy");
-    if (successful) {
-      showCopyFeedback(feedback);
-    } else {
-      console.error("execCommand copy returned false");
-      alert(
-        "Copy failed. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac)."
-      );
-    }
-  } catch (err) {
-    console.error("execCommand copy failed:", err);
-    alert(
-      "Copy operation not supported. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac)."
+  // Add previous month's trailing days
+  for (let i = firstDayOfMonth; i > 0; i--) {
+    const day = lastDateOfPrevMonth - i + 1;
+    const li = createCalendarDay(
+      day,
+      "inactive",
+      `${day}/${currentMonth}/${currentYear}`
     );
+    calendarElements.push(li);
   }
+
+  // Add current month's days
+  for (let i = 1; i <= lastDateOfMonth; i++) {
+    const date = new Date(currentYear, currentMonth, i);
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const isToday =
+      i === new Date().getDate() &&
+      currentMonth === new Date().getMonth() &&
+      currentYear === new Date().getFullYear();
+
+    const className = isWeekend ? "inactive" : "active";
+    const fullDate = `${i}/${currentMonth + 1}/${currentYear}`;
+
+    const li = createCalendarDay(i, className, fullDate, isToday);
+    calendarElements.push(li);
+  }
+
+  // Add next month's leading days
+  for (let i = lastDayOfMonth; i < 7; i++) {
+    const day = i - lastDayOfMonth + 1;
+    const li = createCalendarDay(
+      day,
+      "inactive",
+      `${day}/${currentMonth + 2}/${currentYear}`
+    );
+    calendarElements.push(li);
+  }
+
+  // Update display
+  currentDateElement.innerText = `${MONTHS[currentMonth]} ${currentYear}`;
+  calendarElements.forEach((li) => calendarDates.appendChild(li));
+
+  // Attach event listeners
+  attachDateClickListeners();
 }
 
-// Show copy feedback
-function showCopyFeedback(feedback) {
-  feedback.style.opacity = "1";
-  setTimeout(() => {
-    feedback.style.opacity = "0";
-  }, 2000);
+/**
+ * Create a calendar day element
+ */
+function createCalendarDay(day, className, fullDate, isToday = false) {
+  const li = document.createElement("li");
+  li.textContent = day;
+  li.className = className;
+  li.setAttribute("data-date", fullDate);
+  if (isToday) li.id = "today";
+  return li;
 }
 
-let date = new Date();
-let year = date.getFullYear();
-let month = date.getMonth();
+/**
+ * Attach click listeners to calendar dates
+ */
+function attachDateClickListeners() {
+  const dateElements = document.querySelectorAll(".calendar-dates li");
 
-const calendarDates = document.querySelector(".calendar-dates");
-
-const currdate = document.querySelector(".calendar-current-date");
-
-const prenexIcons = document.querySelectorAll(".calendar-navigation span");
-
-var gameTitle = document.getElementsByClassName("gameTitle");
-
-var isCalendarActive = true;
-var calendarElements = [];
-
-// Array of month names
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const attach_date_listeners = () => {
-  const dateIcons = document.querySelectorAll(".calendar-dates li");
-  // Attach a click event listener to each date
-  dateIcons.forEach((dateIcon) => {
-    // if the date is not inactive
-    if (!dateIcon.classList.contains("inactive")) {
-      // When a date is clicked
-      dateIcon.addEventListener("click", () => {
+  dateElements.forEach((dateElement) => {
+    if (!dateElement.classList.contains("inactive")) {
+      dateElement.addEventListener("click", () => {
         if (isCalendarActive) {
-          // add class selected to the selected date
-          if (dateIcon.classList.contains("selected")) {
-            dateIcon.classList.remove("selected");
-          } else {
-            dateIcon.classList.add("selected");
-          }
-          // Update email template when dates change
+          dateElement.classList.toggle("selected");
           generateEmailTemplate();
+          updateSendButtonState();
         }
       });
     }
   });
-};
+}
 
-const validateForm = () => {
-  const userName = document.querySelector("#name").value.trim();
-  const userStreet = document.querySelector("#street").value.trim();
-  const userCity = document.querySelector("#city").value.trim();
-  const userZip = document.querySelector("#zip").value.trim();
-  const userDistance = document.querySelector("#distance").value.trim();
-  const userRate = document.querySelector("#rate").value.trim();
+/**
+ * Navigate calendar months
+ */
+function navigateMonth(direction) {
+  currentMonth += direction;
+
+  if (currentMonth < 0 || currentMonth > 11) {
+    currentDate = new Date(currentYear, currentMonth, new Date().getDate());
+    currentYear = currentDate.getFullYear();
+    currentMonth = currentDate.getMonth();
+  } else {
+    currentDate = new Date();
+  }
+
+  renderCalendar();
+}
+
+/**
+ * Go to today's date
+ */
+function goToToday() {
+  currentDate = new Date();
+  currentYear = currentDate.getFullYear();
+  currentMonth = currentDate.getMonth();
+  renderCalendar();
+}
+
+// ==================== FORM VALIDATION ====================
+
+/**
+ * Validate all required form fields
+ */
+function validateForm() {
+  const requiredFields = ["name", "street", "city", "zip", "distance", "rate"];
   const selectedDates = document.querySelectorAll(".selected");
 
-  // Check if all required fields are filled and at least one date is selected
-  return (
-    userName !== "" &&
-    userStreet !== "" &&
-    userCity !== "" &&
-    userZip !== "" &&
-    userDistance !== "" &&
-    userRate !== "" &&
-    selectedDates.length > 0
-  );
-};
-
-const updateSendButtonState = () => {
-  const sendButton = document.querySelector("#send-button");
-  if (validateForm() && isCalendarActive) {
-    sendButton.disabled = false;
-    sendButton.style.opacity = "1";
-    sendButton.style.cursor = "pointer";
-  } else {
-    sendButton.disabled = true;
-    sendButton.style.opacity = "0.5";
-    sendButton.style.cursor = "not-allowed";
-  }
-};
-
-const attachInputListeners = () => {
-  const requiredInputs = document.querySelectorAll(
-    "#name, #street, #city, #zip, #iban, #distance, #rate"
-  );
-  const calendarDates = document.querySelector(".calendar-dates");
-
-  requiredInputs.forEach((input) => {
-    input.addEventListener("input", () => {
-      updateSendButtonState();
-      generateEmailTemplate(); // Regenerate email when any input changes
-    });
+  const allFieldsFilled = requiredFields.every((fieldId) => {
+    const value = document.getElementById(fieldId)?.value.trim();
+    return value && value !== "";
   });
 
-  // Add listener for HR name changes
-  const hrNameInput = document.querySelector("#hr-name");
-  if (hrNameInput) {
-    hrNameInput.addEventListener("input", generateEmailTemplate);
-  }
-
-  calendarDates.addEventListener("click", () => {
-    setTimeout(() => {
-      updateSendButtonState();
-      generateEmailTemplate(); // Regenerate email when dates change
-    }, 0); // Delay to allow click event to modify "selected" classes
-  });
-
-  prenexIcons.forEach((icon) => {
-    icon.addEventListener("click", updateSendButtonState);
-  });
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-  const sendButton = document.querySelector("#send-button");
-  sendButton.disabled = true;
-  sendButton.style.opacity = "0.5";
-  sendButton.style.cursor = "not-allowed";
-
-  // Initialize copy button as disabled
-  const copyButton = document.querySelector(".copy-button");
-  if (copyButton) {
-    copyButton.disabled = true;
-    copyButton.style.opacity = "0.5";
-    copyButton.style.cursor = "not-allowed";
-  }
-
-  // Load saved input values from localStorage
-  getInputFromLocalStorage();
-
-  // Attach listeners for input fields and dates
-  attachInputListeners();
-
-  // Add load office days button
-  addLoadOfficeDaysButton();
-});
-
-// Function to add upload office days button
-function addLoadOfficeDaysButton() {
-  const calendarHeader = document.querySelector(".calendar-header");
-  if (calendarHeader && !document.querySelector("#upload-office-days-btn")) {
-    // Create file input (hidden)
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = ".json";
-    fileInput.style.display = "none";
-    fileInput.id = "office-days-file-input";
-
-    // Create upload button
-    const uploadButton = document.createElement("button");
-    uploadButton.id = "upload-office-days-btn";
-    uploadButton.innerHTML =
-      '<span class="material-symbols-rounded">upload_file</span>';
-    uploadButton.title = "Upload office days JSON file";
-
-    // Handle file upload
-    fileInput.addEventListener("change", async (event) => {
-      if (!isCalendarActive) return;
-
-      const file = event.target.files[0];
-      if (!file) return;
-
-      uploadButton.innerHTML =
-        '<span class="material-symbols-rounded">hourglass_empty</span>';
-
-      try {
-        const text = await file.text();
-        const officeDays = JSON.parse(text);
-
-        if (Array.isArray(officeDays) && officeDays.length > 0) {
-          const monthAnalysis = analyzeOfficeDaysMonths(officeDays);
-
-          // Check for mixed month datasets
-          if (monthAnalysis.isMixed) {
-            uploadButton.innerHTML =
-              '<span class="material-symbols-rounded">error</span>';
-            setTimeout(() => {
-              uploadButton.innerHTML =
-                '<span class="material-symbols-rounded">upload_file</span>';
-            }, 3000);
-
-            alert(
-              `❌ Mixed Month Data Detected\n\nThe uploaded file contains dates from multiple months:\n• ${monthAnalysis.monthsFound.join(
-                "\n• "
-              )}\n\nPlease upload office days for only one month at a time.`
-            );
-            return;
-          }
-
-          // Check if we have valid data for a single month
-          if (!monthAnalysis.singleMonth) {
-            uploadButton.innerHTML =
-              '<span class="material-symbols-rounded">error</span>';
-            setTimeout(() => {
-              uploadButton.innerHTML =
-                '<span class="material-symbols-rounded">upload_file</span>';
-            }, 3000);
-            return;
-          }
-
-          // Auto-navigate to the correct month
-          const targetMonth = monthAnalysis.singleMonth.month;
-          const targetYear = monthAnalysis.singleMonth.year;
-
-          // Always navigate to the target month to ensure calendar is in sync
-          // Update global month/year variables
-          month = targetMonth;
-          year = targetYear;
-          date = new Date(year, month, 1);
-
-          // Regenerate calendar for the correct month
-          manipulate();
-
-          uploadButton.innerHTML =
-            '<span class="material-symbols-rounded">event_busy</span>';
-
-          // Wait a moment for calendar to render, then select dates
-          setTimeout(() => {
-            document
-              .querySelectorAll(".calendar-dates .selected")
-              .forEach((el) => {
-                el.classList.remove("selected");
-              });
-
-            const result = autoSelectOfficeDays(officeDays);
-            uploadButton.innerHTML =
-              '<span class="material-symbols-rounded">check_circle</span>';
-            console.log(
-              `Navigated to ${monthAnalysis.singleMonth.monthYear} and selected ${result.selectedCount} office days`
-            );
-
-            setTimeout(() => {
-              uploadButton.innerHTML =
-                '<span class="material-symbols-rounded">upload_file</span>';
-            }, 2000);
-          }, 100);
-
-          // No persistence - office days only exist until page reload
-        } else {
-          uploadButton.innerHTML =
-            '<span class="material-symbols-rounded">error</span>';
-          setTimeout(() => {
-            uploadButton.innerHTML =
-              '<span class="material-symbols-rounded">upload_file</span>';
-          }, 2000);
-        }
-      } catch (error) {
-        console.error("Error parsing office days file:", error);
-        uploadButton.innerHTML =
-          '<span class="material-symbols-rounded">error</span>';
-        setTimeout(() => {
-          uploadButton.innerHTML =
-            '<span class="material-symbols-rounded">upload_file</span>';
-        }, 2000);
-      }
-
-      // Clear file input
-      fileInput.value = "";
-    });
-
-    // Button click opens file dialog
-    uploadButton.addEventListener("click", () => {
-      if (!isCalendarActive) return;
-      fileInput.click();
-    });
-
-    calendarHeader.appendChild(fileInput);
-    calendarHeader.appendChild(uploadButton);
-  }
+  return allFieldsFilled && selectedDates.length > 0;
 }
 
-// Function to save input values to localStorage
-function saveToLocalStorage() {
-  localStorage.setItem("name", document.getElementById("name").value);
-  localStorage.setItem("street", document.getElementById("street").value);
-  localStorage.setItem("zip", document.getElementById("zip").value);
-  localStorage.setItem("city", document.getElementById("city").value);
-  localStorage.setItem("iban", document.getElementById("iban").value);
-  localStorage.setItem("distance", document.getElementById("distance").value);
-  localStorage.setItem("rate", document.getElementById("rate").value);
+/**
+ * Update send button based on form validity
+ */
+function updateSendButtonState() {
+  const sendButton = document.querySelector(SELECTORS.SEND_BUTTON);
+  setButtonState(sendButton, validateForm() && isCalendarActive);
 }
 
-// Function to retrieve input values from localStorage
-function getInputFromLocalStorage() {
+/**
+ * Save form data to localStorage
+ */
+function saveFormToStorage() {
+  const fields = ["name", "street", "zip", "city", "iban", "distance", "rate"];
+  fields.forEach((field) => {
+    const value = document.getElementById(field)?.value;
+    if (value) setInStorage(field, value);
+  });
+}
+
+/**
+ * Load form data from localStorage
+ */
+function loadFormFromStorage() {
   const fields = [
     "name",
     "street",
@@ -496,53 +324,410 @@ function getInputFromLocalStorage() {
     "rate",
     "hr-name",
   ];
-
   fields.forEach((field) => {
-    const value = localStorage.getItem(field);
+    const value = getFromStorage(field);
     if (value) {
-      const inputElement = document.getElementById(field);
-      if (inputElement) {
-        inputElement.value = value;
-      }
+      const element = document.getElementById(field);
+      if (element) element.value = value;
     }
   });
 }
 
-// Function to load office days from server files only (not used for auto-loading)
-async function loadOfficeDays() {
-  const monthYear = `${months[month]}_${year}`;
+// ==================== EMAIL FUNCTIONALITY ====================
 
-  try {
-    const response = await fetch(`office_days/${monthYear}/office_days.json`);
+/**
+ * Update copy button state based on email content
+ */
+function updateCopyButtonState() {
+  const copyButton = document.querySelector(SELECTORS.COPY_BUTTON);
+  const emailTextarea = document.getElementById("email-template");
 
-    if (response.ok) {
-      const officeDays = await response.json();
-      return officeDays || [];
-    }
-  } catch (error) {
-    console.log("No office days file found on server for this month");
+  if (emailTextarea && copyButton) {
+    setButtonState(copyButton, emailTextarea.value.trim() !== "");
   }
-
-  return [];
 }
 
-// Function to analyze which months are in the office days
-function analyzeOfficeDaysMonths(officeDays) {
+/**
+ * Generate email template based on selected dates
+ */
+function generateEmailTemplate() {
+  const userName = document.getElementById("name")?.value.trim();
+  let hrName =
+    document.getElementById("hr-name")?.value.trim() || "HR Department";
+  const selectedDates = document.querySelectorAll(".selected");
+  const emailTextarea = document.getElementById("email-template");
+
+  if (!userName || selectedDates.length === 0) {
+    emailTextarea.value = "";
+    updateCopyButtonState();
+    return;
+  }
+
+  // Get dates and analyze months
+  const datesArray = Array.from(selectedDates).map((date) => date.dataset.date);
+  const monthAnalysis = analyzeMonths(datesArray);
+
+  let emailText = "";
+  if (monthAnalysis.singleMonth) {
+    const monthName = MONTHS[monthAnalysis.singleMonth.month];
+    const year = monthAnalysis.singleMonth.year;
+    emailText = `Dear ${hrName},
+
+Please find attached my travel expense report for ${monthName} ${year}.
+Let me know if you have any questions.
+
+Best wishes,
+${userName}`;
+  } else if (monthAnalysis.isMixed) {
+    const monthsList = monthAnalysis.monthsFound.join(", ");
+    emailText = `Dear ${hrName},
+
+Please find attached my travel expense report for ${monthsList}.
+Let me know if you have any questions.
+
+Best wishes,
+${userName}`;
+  }
+
+  emailTextarea.value = emailText;
+  updateCopyButtonState();
+}
+
+/**
+ * Copy email to clipboard
+ */
+function copyEmailToClipboard() {
+  const emailTextarea = document.getElementById("email-template");
+  const feedback = document.getElementById("copy-feedback");
+
+  if (!emailTextarea.value) return;
+
+  // Save HR name when copying
+  const hrName = document.getElementById("hr-name")?.value.trim();
+  if (hrName) setInStorage("hr-name", hrName);
+
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard
+      .writeText(emailTextarea.value)
+      .then(() => showFeedback(feedback))
+      .catch(() => fallbackCopy(emailTextarea, feedback));
+  } else {
+    fallbackCopy(emailTextarea, feedback);
+  }
+}
+
+/**
+ * Fallback clipboard copy for older browsers
+ */
+function fallbackCopy(textarea, feedback) {
+  textarea.select();
+  textarea.setSelectionRange(0, 99999);
+
+  try {
+    if (document.execCommand("copy")) {
+      showFeedback(feedback);
+    } else {
+      alert(
+        "Copy failed. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac)."
+      );
+    }
+  } catch (err) {
+    alert("Copy operation not supported. Please select the text manually.");
+  }
+}
+
+// ==================== PDF GENERATION ====================
+
+/**
+ * Generate expense report PDF
+ */
+function generateReport() {
+  if (!isCalendarActive || !validateForm()) return;
+
+  saveFormToStorage();
+
+  // Get form values
+  const formData = {
+    name: document.getElementById("name").value,
+    street: document.getElementById("street").value,
+    city: document.getElementById("city").value,
+    zip: document.getElementById("zip").value,
+    iban: document.getElementById("iban").value,
+    distance: document.getElementById("distance").value,
+    rate: document.getElementById("rate").value,
+  };
+
+  // Get selected dates
+  const selectedDates = document.querySelectorAll(".selected");
+  const dates = Array.from(selectedDates).map((date) => date.dataset.date);
+
+  if (dates.length === 0) {
+    alert("Please select at least one date.");
+    return;
+  }
+
+  createPDF(formData, dates);
+}
+
+/**
+ * Create PDF document
+ */
+function createPDF(formData, dates) {
+  // Calculate expense data
+  const distanceKm = Math.ceil(parseFloat(formData.distance));
+  const ratePerKm = parseFloat(formData.rate);
+  const dailyDistance = distanceKm * 2;
+  const dailyAmount = dailyDistance * ratePerKm;
+  const totalDistance = dailyDistance * dates.length;
+  const totalAmount = dailyAmount * dates.length;
+
+  // Create PDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  // Title
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.text("Expense claim form", 105, 25, { align: "center" });
+
+  // Personal information
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+
+  let yPos = 45;
+
+  // Name and IBAN
+  doc.setFont("helvetica", "bold");
+  doc.text("Name:", 20, yPos);
+  doc.text("IBAN:", 105, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(formData.name, 45, yPos);
+  doc.text(formData.iban || "N/A", 130, yPos);
+
+  yPos += 15;
+
+  // Address
+  doc.setFont("helvetica", "bold");
+  doc.text("Address:", 20, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${formData.street}, ${formData.zip}, ${formData.city}`, 50, yPos);
+
+  yPos += 15;
+
+  // Period
+  doc.setFont("helvetica", "bold");
+  doc.text("Period/month:", 20, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${currentMonth + 1}/${currentYear}`, 65, yPos);
+
+  yPos += 25;
+
+  // Table data
+  const tableData = [
+    ["Date", "Description", "# km's", "Rate per km", "Amount"],
+  ];
+
+  dates.forEach((date) => {
+    tableData.push([
+      date,
+      `2 x ${distanceKm} km traveled`,
+      dailyDistance.toString(),
+      `€${ratePerKm.toFixed(2)}`,
+      `€${dailyAmount.toFixed(2)}`,
+    ]);
+  });
+
+  tableData.push([
+    "",
+    "TOTAL:",
+    totalDistance.toString(),
+    "",
+    `€${totalAmount.toFixed(2)}`,
+  ]);
+
+  // Draw table
+  doc.autoTable({
+    head: [tableData[0]],
+    body: tableData.slice(1),
+    startY: yPos,
+    theme: "grid",
+    styles: { fontSize: 10, cellPadding: 3 },
+    headStyles: {
+      fillColor: [240, 240, 240],
+      textColor: [0, 0, 0],
+      fontStyle: "bold",
+    },
+    columnStyles: {
+      0: { cellWidth: 25 },
+      1: { cellWidth: 70 },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 25 },
+      4: { cellWidth: 25 },
+    },
+  });
+
+  // Final total
+  const finalY = doc.lastAutoTable.finalY + 20;
+  doc.setFont("helvetica", "bold");
+  doc.text(`Total amount: €${totalAmount.toFixed(2)}`, 20, finalY);
+
+  // Save PDF
+  const fileName = `expenses_${MONTHS[currentMonth]}_${currentYear}.pdf`;
+  doc.save(fileName);
+}
+
+// ==================== OFFICE DAYS FUNCTIONALITY ====================
+
+/**
+ * Create and add upload button for office days
+ */
+function createUploadButton() {
+  const calendarHeader = document.querySelector(".calendar-header");
+  if (!calendarHeader || document.querySelector("#upload-office-days-btn"))
+    return;
+
+  // Create hidden file input
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = ".json";
+  fileInput.style.display = "none";
+  fileInput.id = "office-days-file-input";
+
+  // Create visible button
+  const uploadButton = document.createElement("button");
+  uploadButton.id = "upload-office-days-btn";
+  uploadButton.innerHTML =
+    '<span class="material-symbols-rounded">upload_file</span>';
+  uploadButton.title = "Upload office days JSON file";
+
+  // Handle file selection
+  fileInput.addEventListener("change", handleOfficeDaysUpload);
+
+  // Button click opens file dialog
+  uploadButton.addEventListener("click", () => {
+    if (isCalendarActive) fileInput.click();
+  });
+
+  calendarHeader.appendChild(fileInput);
+  calendarHeader.appendChild(uploadButton);
+}
+
+/**
+ * Handle office days file upload
+ */
+async function handleOfficeDaysUpload(event) {
+  if (!isCalendarActive) return;
+
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const uploadButton = document.querySelector("#upload-office-days-btn");
+  uploadButton.innerHTML =
+    '<span class="material-symbols-rounded">hourglass_empty</span>';
+
+  try {
+    const text = await file.text();
+    const officeDays = JSON.parse(text);
+
+    if (!Array.isArray(officeDays) || officeDays.length === 0) {
+      throw new Error("Invalid file format");
+    }
+
+    const monthAnalysis = analyzeMonths(officeDays);
+
+    // Check for mixed months
+    if (monthAnalysis.isMixed) {
+      uploadButton.innerHTML =
+        '<span class="material-symbols-rounded">error</span>';
+      alert(
+        `Mixed Month Data Detected\n\nThe file contains dates from multiple months:\n• ${monthAnalysis.monthsFound.join(
+          "\n• "
+        )}\n\nPlease upload office days for only one month at a time.`
+      );
+      setTimeout(() => {
+        uploadButton.innerHTML =
+          '<span class="material-symbols-rounded">upload_file</span>';
+      }, TIMEOUTS.ERROR_DISPLAY);
+      return;
+    }
+
+    // Navigate to the correct month
+    if (monthAnalysis.singleMonth) {
+      currentMonth = monthAnalysis.singleMonth.month;
+      currentYear = monthAnalysis.singleMonth.year;
+      currentDate = new Date(currentYear, currentMonth, 1);
+      renderCalendar();
+
+      // Select the dates after calendar renders
+      setTimeout(() => {
+        selectOfficeDays(officeDays);
+        uploadButton.innerHTML =
+          '<span class="material-symbols-rounded">check_circle</span>';
+        setTimeout(() => {
+          uploadButton.innerHTML =
+            '<span class="material-symbols-rounded">upload_file</span>';
+        }, TIMEOUTS.BUTTON_RESET);
+      }, TIMEOUTS.CALENDAR_RENDER_DELAY);
+    }
+  } catch (error) {
+    console.error("Error parsing office days file:", error);
+    uploadButton.innerHTML =
+      '<span class="material-symbols-rounded">error</span>';
+    setTimeout(() => {
+      uploadButton.innerHTML =
+        '<span class="material-symbols-rounded">upload_file</span>';
+    }, TIMEOUTS.BUTTON_RESET);
+  }
+
+  // Clear file input
+  event.target.value = "";
+}
+
+/**
+ * Select office days in calendar
+ */
+function selectOfficeDays(officeDays) {
+  // Clear existing selections
+  document.querySelectorAll(".calendar-dates .selected").forEach((el) => {
+    el.classList.remove("selected");
+  });
+
+  // Select new dates
+  officeDays.forEach((dateStr) => {
+    const dateElements = document.querySelectorAll(
+      `.calendar-dates li[data-date="${dateStr}"]`
+    );
+    dateElements.forEach((element) => {
+      if (!element.classList.contains("inactive")) {
+        element.classList.add("selected");
+      }
+    });
+  });
+
+  updateSendButtonState();
+  generateEmailTemplate();
+}
+
+/**
+ * Analyze which months are in the dates array
+ */
+function analyzeMonths(dates) {
   const monthsFound = new Set();
   const monthYearData = [];
 
-  officeDays.forEach((dateStr) => {
+  dates.forEach((dateStr) => {
     try {
       const parts = dateStr.split("/");
       if (parts.length === 3) {
         const day = parseInt(parts[0]);
-        const monthNum = parseInt(parts[1]);
+        const month = parseInt(parts[1]);
         const year = parseInt(parts[2]);
 
-        if (monthNum >= 1 && monthNum <= 12 && year > 1900) {
-          const monthYear = `${months[monthNum - 1]} ${year}`;
+        if (month >= 1 && month <= 12 && year > 1900) {
+          const monthYear = `${MONTHS[month - 1]} ${year}`;
           monthsFound.add(monthYear);
-          monthYearData.push({ month: monthNum - 1, year: year, monthYear });
+          monthYearData.push({ month: month - 1, year: year, monthYear });
         }
       }
     } catch (e) {
@@ -557,645 +742,334 @@ function analyzeOfficeDaysMonths(officeDays) {
   };
 }
 
-// Function to auto-select office days in calendar
-function autoSelectOfficeDays(officeDays) {
-  let selectedCount = 0;
-  let totalDates = officeDays.length;
+// ==================== SNAKE GAME ====================
 
-  officeDays.forEach((dateStr) => {
-    // Find the calendar element with matching date
-    const dateElements = document.querySelectorAll(
-      `.calendar-dates li[data-date="${dateStr}"]`
-    );
-    dateElements.forEach((element) => {
-      if (!element.classList.contains("inactive")) {
-        element.classList.add("selected");
-        selectedCount++;
-      }
-    });
+/**
+ * Start the snake game
+ */
+function startGame() {
+  if (snakeGame.active) return;
+
+  // Initialize game state
+  snakeGame.active = true;
+  snakeGame.isOver = false;
+  snakeGame.isTerminated = false;
+  snakeGame.size = 1;
+  snakeGame.period = 500;
+  snakeGame.position = [0, -1];
+  snakeGame.direction = [0, 1];
+  snakeGame.keyDirection = 0;
+  snakeGame.keyQueue = [];
+  snakeGame.bodyValues = [];
+
+  // Setup game board
+  const todayIndex = calendarElements.findIndex((el) => el.id === "today");
+  const cols = 7;
+  const rows = Math.floor(calendarElements.length / cols);
+  snakeGame.fruitPosition = [Math.floor(todayIndex / cols), todayIndex % cols];
+
+  // Initialize calendar for game
+  isCalendarActive = false;
+  calendarElements.forEach((el) => {
+    el.classList = "inactive";
+    el.id = "";
+    snakeGame.bodyValues.push(0);
   });
 
-  // Update send button state after auto-selecting
+  // Animate title
+  const gameTitle = document.querySelectorAll(".gameTitle");
+  gameTitle.forEach((letter, i) => {
+    setTimeout(() => {
+      letter.classList.add("move-up");
+    }, i * 100);
+  });
+
+  document.querySelector(".calendar-current-date").innerText = "Score: 0";
   updateSendButtonState();
 
-  // Update email template after auto-selecting dates
-  generateEmailTemplate();
-
-  const monthAnalysis = analyzeOfficeDaysMonths(officeDays);
-  return { selectedCount, totalDates, monthAnalysis };
+  // Start game loop
+  updateSnakeGame();
 }
 
-// Updated generateReport function using localStorage
-const generateReport = () => {
-  if (!isCalendarActive || !validateForm()) {
-    return;
-  }
+/**
+ * Update snake game state
+ */
+function updateSnakeGame() {
+  if (!snakeGame.active || snakeGame.isTerminated) return;
 
-  // Save input values to localStorage
-  saveToLocalStorage();
+  const cols = 7;
+  const rows = Math.floor(calendarElements.length / cols);
 
-  // Retrieve input values from the form
-  const userName = document.querySelector("#name").value;
-  const userStreet = document.querySelector("#street").value;
-  const userCity = document.querySelector("#city").value;
-  const userZip = document.querySelector("#zip").value;
-  const userIban = document.querySelector("#iban").value;
-  const userDistance = document.querySelector("#distance").value;
-  const userRate = document.querySelector("#rate").value;
-
-  // Collect selected dates
-  const selectedDates = document.querySelectorAll(".selected");
-  const datesOutput = Array.from(selectedDates).map(
-    (date) => date.dataset.date
-  );
-
-  // Validate inputs
-  if (
-    !userName ||
-    !userStreet ||
-    !userCity ||
-    !userZip ||
-    !userRate ||
-    datesOutput.length === 0
-  ) {
-    alert("Please fill in all fields and select at least one date.");
-    return;
-  }
-
-  // Generate the PDF file
-  requestExcel(
-    userName,
-    userStreet,
-    userCity,
-    userZip,
-    userIban,
-    userDistance,
-    userRate,
-    datesOutput
-  );
-};
-
-// Function to generate PDF
-const requestExcel = async (
-  userName,
-  userStreet,
-  userCity,
-  userZip,
-  userIban,
-  userDistance,
-  userRate,
-  datesOutput
-) => {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Expenses");
-
-  // Calculate values beforehand (no formulas)
-  const distanceKm = Math.ceil(parseFloat(userDistance));
-  const ratePerKm = parseFloat(userRate);
-  const dailyDistance = distanceKm * 2; // Round trip
-  const dailyAmount = dailyDistance * ratePerKm;
-  const totalDays = datesOutput.length;
-  const totalDistance = dailyDistance * totalDays;
-  const totalAmount = dailyAmount * totalDays;
-
-  // Define styles
-  const headerFont = { name: "Verdana", size: 22 };
-  const regularFont = { name: "Verdana", size: 11 };
-  const borderStyle = {
-    top: { style: "thin", color: { argb: "00000000" } },
-    left: { style: "thin", color: { argb: "00000000" } },
-    bottom: { style: "thin", color: { argb: "00000000" } },
-    right: { style: "thin", color: { argb: "00000000" } },
-  };
-
-  // Header information
-  worksheet.addRow([null, "Expense claim form"]);
-  worksheet.addRow(["Name:", userName, "IBAN:", userIban]);
-  worksheet.addRow([
-    "Address:",
-    `${userStreet}, ${userZip}, ${userCity}`,
-    "Period/month:",
-    `${month + 1}/${year}`,
-  ]);
-  worksheet.addRow([]); // Empty row for spacing
-
-  // Apply styles to header rows
-  [1, 2, 3].forEach((rowNumber) => {
-    const row = worksheet.getRow(rowNumber);
-    row.eachCell((cell) => {
-      cell.font = rowNumber === 1 ? headerFont : regularFont;
-      cell.border = borderStyle;
-    });
-  });
-
-  // Column headers
-  const headerRow = worksheet.addRow([
-    "Date",
-    "Description",
-    "# km's",
-    "Rate per km",
-    "Amount",
-  ]);
-  headerRow.font = regularFont;
-  headerRow.eachCell((cell) => {
-    cell.border = borderStyle;
-  });
-
-  // Populate data rows with precalculated values instead of formulas
-  datesOutput.forEach((date) => {
-    const description = `2 x ${distanceKm} km traveled`;
-    worksheet.addRow([
-      date,
-      description,
-      dailyDistance,
-      ratePerKm,
-      dailyAmount, // Precalculated instead of formula
-    ]);
-  });
-
-  // Add totals with precalculated values instead of SUM formulas
-  worksheet.addRow([
-    null,
-    null,
-    totalDistance, // Precalculated instead of SUM formula
-    null,
-    totalAmount, // Precalculated instead of SUM formula
-  ]);
-  worksheet.addRow([null, null, null, null, null]); // Empty row for spacing
-  worksheet.addRow([
-    null,
-    null,
-    "Total amount",
-    null,
-    totalAmount, // Precalculated instead of SUM formula
-  ]);
-
-  // Apply borders and fonts to data rows
-  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    row.eachCell({ includeEmpty: false }, (cell) => {
-      // Apply border
-      cell.border = borderStyle;
-
-      // Apply font
-      if (rowNumber === 1) {
-        cell.font = headerFont;
-      } else {
-        cell.font = regularFont;
-      }
-    });
-  });
-
-  // Merge cells
-  worksheet.mergeCells("D2:E2"); // Merge D2:E2
-  worksheet.mergeCells("D3:E3"); // Merge D3:E3
-
-  // Set column widths
-  worksheet.columns = [
-    { width: 18 }, // Date
-    { width: 50 }, // Description
-    { width: 18 }, // Distance
-    { width: 18 }, // Rate
-    { width: 18 }, // Amount
-  ];
-
-  // Generate PDF file
-  try {
-    // Create PDF using jsPDF with autoTable for better formatting
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("Expense claim form", 105, 25, { align: "center" });
-
-    // Personal information
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-
-    const leftMargin = 20;
-    const rightMargin = 105;
-    let yPos = 45;
-
-    // Name and IBAN row
-    doc.setFont("helvetica", "bold");
-    doc.text("Name:", leftMargin, yPos);
-    doc.text("IBAN:", rightMargin, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(userName, leftMargin + 25, yPos);
-    doc.text(userIban || "N/A", rightMargin + 25, yPos);
-
-    yPos += 15;
-
-    // Address row
-    doc.setFont("helvetica", "bold");
-    doc.text("Address:", leftMargin, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${userStreet}, ${userZip}, ${userCity}`, leftMargin + 30, yPos);
-
-    yPos += 15;
-
-    // Period row
-    doc.setFont("helvetica", "bold");
-    doc.text("Period/month:", leftMargin, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${month + 1}/${year}`, leftMargin + 45, yPos);
-
-    yPos += 25;
-
-    // Prepare table data
-    const tableData = [
-      ["Date", "Description", "# km's", "Rate per km", "Amount"],
-    ];
-
-    // Add data rows
-    datesOutput.forEach((date) => {
-      const description = `2 x ${distanceKm} km traveled`;
-      tableData.push([
-        date,
-        description,
-        dailyDistance.toString(),
-        `€${ratePerKm.toFixed(2)}`,
-        `€${dailyAmount.toFixed(2)}`,
-      ]);
-    });
-
-    // Add total row
-    tableData.push([
-      "",
-      "TOTAL:",
-      totalDistance.toString(),
-      "",
-      `€${totalAmount.toFixed(2)}`,
-    ]);
-
-    // Draw table using autoTable
-    doc.autoTable({
-      head: [tableData[0]],
-      body: tableData.slice(1),
-      startY: yPos,
-      theme: "grid",
-      styles: { fontSize: 10, cellPadding: 3 },
-      headStyles: {
-        fillColor: [240, 240, 240],
-        textColor: [0, 0, 0],
-        fontStyle: "bold",
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 70 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 25 },
-        4: { cellWidth: 25 },
-      },
-    });
-
-    // Final total
-    const finalY = doc.lastAutoTable.finalY + 20;
-    doc.setFont("helvetica", "bold");
-    doc.text(`Total amount: €${totalAmount.toFixed(2)}`, leftMargin, finalY);
-
-    // Save the PDF
-    const fileName = `expenses_${months[month]}_${year}.pdf`;
-    doc.save(fileName);
-
-    console.log(`PDF generated successfully: ${fileName}`);
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-  }
-};
-
-// Function to generate the calendar
-const manipulate = () => {
-  if (!isCalendarActive) {
-    return;
-  }
-
-  // Clear previous calendar elements if any
-  calendarDates.innerHTML = ""; // Assuming 'day' is your container element
-  calendarElements = [];
-
-  // Get the first day of the month (0 - Sunday, 6 - Saturday)
-  let dayone = new Date(year, month, 1).getDay() - 1;
-  if (dayone === -1) {
-    dayone = 6; // Adjusting so that Monday is 0 and Sunday is 6
-  }
-
-  // Get the last date of the current month
-  const lastdate = new Date(year, month + 1, 0).getDate();
-
-  // Get the day of the week for the last date of the current month
-  const dayend = new Date(year, month, lastdate).getDay();
-
-  // Get the last date of the previous month
-  const monthlastdate = new Date(year, month, 0).getDate();
-
-  // Helper function to create an <li> element
-  const createListItem = (text, className, fullDate, isToday = false) => {
-    const li = document.createElement("li");
-    li.textContent = text;
-    li.className = className;
-    li.setAttribute("data-date", fullDate);
-    if (isToday) {
-      li.id = "today"; // Assuming 'today' is unique; consider using a class instead if multiple elements can be today
+  if (!snakeGame.isOver) {
+    // Process key input
+    if (snakeGame.keyQueue.length > 0) {
+      snakeGame.keyDirection = snakeGame.keyQueue.shift();
+      const directionMap = {
+        0: [0, 1], // Right
+        1: [0, -1], // Left
+        2: [-1, 0], // Up
+        3: [1, 0], // Down
+      };
+      snakeGame.direction = directionMap[snakeGame.keyDirection];
     }
-    return li;
-  };
 
-  // Add the last few days of the previous month
-  for (let i = dayone; i > 0; i--) {
-    const monthDay = monthlastdate - i + 1;
-    const fullDate = `${monthDay}/${month}/${year}`;
-    const li = createListItem(monthDay, "inactive", fullDate);
-    calendarElements.push(li);
+    // Update position
+    snakeGame.position[0] += snakeGame.direction[0];
+    snakeGame.position[1] += snakeGame.direction[1];
+
+    // Wrap around edges
+    if (snakeGame.position[0] < 0) snakeGame.position[0] = rows - 1;
+    else if (snakeGame.position[0] >= rows) snakeGame.position[0] = 0;
+    if (snakeGame.position[1] < 0) snakeGame.position[1] = cols - 1;
+    else if (snakeGame.position[1] >= cols) snakeGame.position[1] = 0;
+
+    // Decrease period for difficulty
+    snakeGame.period = Math.max(200, snakeGame.period - 1);
   }
 
-  // Add the current month's days
-  for (let i = 1; i <= lastdate; i++) {
-    // Check if the current date is today
-    const today = new Date();
-    const isToday =
-      i === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear();
+  // Update display
+  renderSnakeGame(cols);
 
-    const monthDay = i;
-    const fullDate = `${monthDay}/${month + 1}/${year}`;
-    const weekday = new Date(year, month, i).getDay();
-    const className = weekday === 0 || weekday === 6 ? "inactive" : "active";
+  // Check win/lose conditions
+  checkSnakeGameStatus();
 
-    const li = createListItem(monthDay, className, fullDate, isToday);
-    calendarElements.push(li);
+  // Continue game loop
+  if (!snakeGame.isTerminated) {
+    setTimeout(updateSnakeGame, snakeGame.period);
+  }
+}
+
+/**
+ * Render snake game visuals
+ */
+function renderSnakeGame(cols) {
+  const posIndex = snakeGame.position[0] * cols + snakeGame.position[1];
+  const fruitIndex =
+    snakeGame.fruitPosition[0] * cols + snakeGame.fruitPosition[1];
+
+  // Check collision
+  if (!snakeGame.isOver && snakeGame.bodyValues[posIndex] > 0) {
+    snakeGame.isOver = true;
+    document.querySelector(".calendar-current-date").innerText =
+      "💀 Game Over 💀";
+    snakeGame.period = 50;
   }
 
-  // Add the first few days of the next month
-  for (let i = dayend; i < 7; i++) {
-    const monthDay = i - dayend + 1;
-    const fullDate = `${monthDay}/${month + 2}/${year}`;
-    const li = createListItem(monthDay, "inactive", fullDate);
-    calendarElements.push(li);
+  // Update snake body
+  if (!snakeGame.isOver) {
+    snakeGame.bodyValues[posIndex] = snakeGame.size + 1;
   }
 
-  // Update the current date display
-  currdate.innerText = `${months[month]} ${year}`;
-
-  // clear the calendar container
-  // Append all created <li> elements to the calendar container
-  calendarElements.forEach((li) => calendarDates.appendChild(li));
-
-  // Attach event listeners to the date elements
-  attach_date_listeners();
-
-  // No auto-loading - office days only selected when explicitly uploaded
-};
-
-manipulate();
-
-// Attach a click event listener to each icon
-prenexIcons.forEach((icon) => {
-  // When an icon is clicked
-  icon.addEventListener("click", () => {
-    // Check if the icon is "calendar-prev"
-    // or "calendar-next"
-    month = icon.id === "calendar-prev" ? month - 1 : month + 1;
-
-    // Check if the month is out of range
-    if (month < 0 || month > 11) {
-      // Set the date to the first day of the
-      // month with the new year
-      date = new Date(year, month, new Date().getDate());
-
-      // Set the year to the new year
-      year = date.getFullYear();
-
-      // Set the month to the new month
-      month = date.getMonth();
+  // Render cells
+  calendarElements.forEach((el, i) => {
+    if (snakeGame.bodyValues[i] > 0) {
+      el.classList = "selected";
+      el.id = "snake";
+      snakeGame.bodyValues[i]--;
     } else {
-      // Set the date to the current date
-      date = new Date();
+      el.classList = "inactive";
+      el.id = "";
     }
-
-    // Call the manipulate function to
-    // update the calendar display
-    manipulate();
   });
-});
 
-// Attach a click event listener to the "Today" icon
-const todayIcon = document.querySelector("#calendar-today");
-todayIcon.addEventListener("click", () => {
-  date = new Date();
-  year = date.getFullYear();
-  month = date.getMonth();
-  manipulate();
-});
-
-// * GAME LOGIC * //
-
-var ceValues = [];
-
-var rowCount;
-var colCount = 7;
-var period = 500;
-var size = 1;
-var currentPos = [0, -1];
-var todayIndex = calendarElements.findIndex((el) => el.id === "today");
-var fruitPos = [Math.floor(todayIndex / colCount), todayIndex % colCount];
-var isGameOver = false;
-var keyDirectionQueue = [];
-var keyDirection = 0;
-var direction = [0, 1];
-var isTerminated = false;
-var tail = document.querySelector(".tail");
-
-const directionMap = {
-  0: [0, 1],
-  1: [0, -1],
-  2: [-1, 0],
-  3: [1, 0],
-};
-
-const keyDirectionMap = {
-  ArrowRight: 0,
-  ArrowLeft: 1,
-  ArrowUp: 2,
-  ArrowDown: 3,
-};
-
-const oppositeKeyDirection = {
-  ArrowLeft: 0,
-  ArrowRight: 1,
-  ArrowDown: 2,
-  ArrowUp: 3,
-};
-// Define a function that removes the event listeners from all dates and icons
-const initializeDates = () => {
-  for (let i = 0; i < calendarElements.length; i++) {
-    calendarElements[i].classList = "inactive";
-    calendarElements[i].id = "";
-    ceValues.push(0);
-  }
-};
-// define a function that updates the dates
-const updateDates = () => {
-  // calculate the index of the position
-  var posIndex = currentPos[0] * colCount + currentPos[1];
-  var fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
-  if (!isGameOver) {
-    if (ceValues[posIndex] > 0) {
-      isGameOver = true;
-      currdate.innerText = "💀 Game Over 💀";
-      period = 50;
-    }
-    ceValues[posIndex] = size + 1;
-  }
-
-  for (let i = 0; i < calendarElements.length; i++) {
-    if (ceValues[i] > 0) {
-      calendarElements[i].classList = "selected";
-      calendarElements[i].id = "snake";
-      ceValues[i] -= 1;
-    } else {
-      calendarElements[i].classList = "inactive";
-      calendarElements[i].id = "";
-    }
-  }
+  // Mark snake head
   calendarElements[posIndex].id = "head";
 
-  if (currentPos[0] === fruitPos[0] && currentPos[1] === fruitPos[1]) {
-    while (calendarElements[fruitPosIndex].classList.contains("selected")) {
-      fruitPos[0] = Math.floor(Math.random() * rowCount);
-      fruitPos[1] = Math.floor(Math.random() * colCount);
-      fruitPosIndex = fruitPos[0] * colCount + fruitPos[1];
+  // Check fruit collection
+  if (
+    snakeGame.position[0] === snakeGame.fruitPosition[0] &&
+    snakeGame.position[1] === snakeGame.fruitPosition[1]
+  ) {
+    // Find new fruit position
+    while (calendarElements[fruitIndex].classList.contains("selected")) {
+      snakeGame.fruitPosition[0] = Math.floor(
+        Math.random() * Math.floor(calendarElements.length / cols)
+      );
+      snakeGame.fruitPosition[1] = Math.floor(Math.random() * cols);
     }
-    currdate.innerText = `Score: ${size}`;
-    size += 1;
+    snakeGame.size++;
+    document.querySelector(".calendar-current-date").innerText = `Score: ${
+      snakeGame.size - 1
+    }`;
   }
-  calendarElements[fruitPosIndex].id = "fruit";
-};
 
+  // Mark fruit
+  calendarElements[fruitIndex].id = "fruit";
+}
+
+/**
+ * Check win/lose conditions for snake game
+ */
+function checkSnakeGameStatus() {
+  const inactiveCount = snakeGame.bodyValues.filter((v) => v === 0).length;
+
+  // Check win condition
+  if (inactiveCount <= 1) {
+    snakeGame.isOver = true;
+    document.querySelector(".calendar-current-date").innerText =
+      "🎉 You Win 🎉";
+    if (window.ConfettiPage) window.ConfettiPage.play();
+    snakeGame.period = 50;
+    snakeGame.isTerminated = true;
+  }
+
+  // Check if game over animation finished
+  const selectedCount = snakeGame.bodyValues.filter((v) => v > 0).length;
+  if (snakeGame.isOver && selectedCount <= 0) {
+    snakeGame.isTerminated = true;
+    resetAfterSnakeGame();
+  }
+}
+
+/**
+ * Reset after snake game ends
+ */
+function resetAfterSnakeGame() {
+  snakeGame.active = false;
+  isCalendarActive = true;
+
+  // Reset game title
+  document.querySelectorAll(".gameTitle").forEach((letter) => {
+    letter.classList.remove("move-up");
+  });
+
+  // Reset tail animation
+  const tail = document.querySelector(".tail");
+  if (tail) tail.classList.toggle("move-right");
+
+  // Restore calendar
+  renderCalendar();
+  updateSendButtonState();
+}
+
+// Snake game controls
 document.addEventListener("keydown", (event) => {
-  if (event.key in keyDirectionMap) {
-    // if the queue is empty
+  if (!snakeGame.active || snakeGame.isOver) return;
+
+  const keyMap = {
+    ArrowRight: 0,
+    ArrowLeft: 1,
+    ArrowUp: 2,
+    ArrowDown: 3,
+  };
+
+  const oppositeMap = {
+    ArrowLeft: 0,
+    ArrowRight: 1,
+    ArrowDown: 2,
+    ArrowUp: 3,
+  };
+
+  if (event.key in keyMap) {
+    const newDirection = keyMap[event.key];
+
+    // Prevent opposite direction
     if (
-      keyDirectionQueue.length === 0 &&
-      keyDirection !== oppositeKeyDirection[event.key]
+      snakeGame.keyQueue.length === 0 &&
+      snakeGame.keyDirection !== oppositeMap[event.key]
     ) {
-      keyDirectionQueue.push(keyDirectionMap[event.key]);
+      snakeGame.keyQueue.push(newDirection);
     } else if (
-      keyDirectionQueue.length === 1 &&
-      keyDirectionQueue[0] !== keyDirectionMap[event.key] &&
-      keyDirectionQueue[0] !== oppositeKeyDirection[event.key]
+      snakeGame.keyQueue.length === 1 &&
+      snakeGame.keyQueue[0] !== newDirection &&
+      snakeGame.keyQueue[0] !== oppositeMap[event.key]
     ) {
-      keyDirectionQueue.push(keyDirectionMap[event.key]);
+      snakeGame.keyQueue.push(newDirection);
     }
   }
 });
 
-const checkWinLoseCondition = () => {
-  // explicit check
-  var inactiveCount = 0;
-  for (let i = 0; i < ceValues.length; i++) {
-    if (ceValues[i] === 0) {
-      inactiveCount += 1;
-    }
+// ==================== INITIALIZATION ====================
+
+/**
+ * Attach input listeners
+ */
+function attachInputListeners() {
+  const requiredInputs = document.querySelectorAll(
+    "#name, #street, #city, #zip, #iban, #distance, #rate"
+  );
+
+  requiredInputs.forEach((input) => {
+    input.addEventListener("input", () => {
+      updateSendButtonState();
+      generateEmailTemplate();
+    });
+  });
+
+  // HR name input
+  const hrNameInput = document.getElementById("hr-name");
+  if (hrNameInput) {
+    hrNameInput.addEventListener("input", generateEmailTemplate);
   }
-  if (inactiveCount <= 1) {
-    isGameOver = true;
-    currdate.innerText = "🎉 You Win 🎉";
-    window.ConfettiPage.play();
-    period = 50;
-    isTerminated = true;
-  }
-  var selectedCount = 0;
-  for (let i = 0; i < ceValues.length; i++) {
-    if (ceValues[i] > 0) {
-      selectedCount += 1;
-    }
-  }
-  if (isGameOver && selectedCount <= 0) {
-    isTerminated = true;
-    initializeDates();
-  }
-  if (isTerminated) {
-    setTimeout(() => {
-      tail.classList.toggle("move-right");
+
+  // Calendar dates click
+  const calendarDates = document.querySelector(".calendar-dates");
+  if (calendarDates) {
+    calendarDates.addEventListener("click", () => {
+      setTimeout(() => {
+        updateSendButtonState();
+        generateEmailTemplate();
+      }, 0);
     });
   }
-};
+}
 
-var gameTimeout;
-// Define a function that updates the game state
-const update = () => {
-  if (!isGameOver) {
-    // update the direction
-    if (keyDirectionQueue.length > 0) {
-      keyDirection = keyDirectionQueue.shift();
-      direction = directionMap[keyDirection];
-    }
-    // update the current position
-    currentPos[0] += direction[0];
-    currentPos[1] += direction[1];
-    if (currentPos[0] < 0) {
-      currentPos[0] = rowCount - 1;
-    } else if (currentPos[0] >= rowCount) {
-      currentPos[0] = 0;
-    }
-    if (currentPos[1] < 0) {
-      currentPos[1] = colCount - 1;
-    } else if (currentPos[1] >= colCount) {
-      currentPos[1] = 0;
-    }
-    period -= 1;
-    period = Math.max(period, 200);
-  }
-  updateDates(currentPos, fruitPos, size);
-  checkWinLoseCondition();
+/**
+ * Initialize navigation icons
+ */
+function initializeNavigation() {
+  // Previous/Next month navigation
+  document.getElementById("calendar-prev")?.addEventListener("click", () => {
+    navigateMonth(-1);
+    updateSendButtonState();
+  });
 
-  if (!isTerminated) {
-    gameTimeout = setTimeout(update, period);
-  }
-};
+  document.getElementById("calendar-next")?.addEventListener("click", () => {
+    navigateMonth(1);
+    updateSendButtonState();
+  });
 
-// Add a click event listener
-tail.addEventListener("click", () => {
-  tail.classList.toggle("move-right");
+  // Today button
+  document.getElementById("calendar-today")?.addEventListener("click", () => {
+    goToToday();
+    updateSendButtonState();
+  });
+}
+
+/**
+ * Initialize application on DOM load
+ */
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize theme
+  initializeTheme();
+
+  // Initialize buttons
+  const sendButton = document.querySelector(SELECTORS.SEND_BUTTON);
+  const copyButton = document.querySelector(SELECTORS.COPY_BUTTON);
+
+  setButtonState(sendButton, false);
+  setButtonState(copyButton, false);
+
+  // Load saved form data
+  loadFormFromStorage();
+
+  // Render calendar
+  renderCalendar();
+
+  // Attach listeners
+  attachInputListeners();
+  initializeNavigation();
+
+  // Add upload button
+  createUploadButton();
+
+  // Update initial states
+  updateSendButtonState();
+  generateEmailTemplate();
 });
 
-// Define a function that starts the game
-const startGame = () => {
-  rowCount = Math.floor(calendarElements.length / 7);
-  colCount = 7;
-  currentPos = [0, -1];
-  fruitPos = [Math.floor(todayIndex / colCount), todayIndex % colCount];
-  isGameOver = false;
-  keyDirectionQueue = [];
-  keyDirection = 0;
-  direction = [0, 1];
-  isTerminated = false;
-  size = 1;
-  period = 500;
-  ceValues = [];
-  currdate.innerText = "Score: 0";
-
-  // add .move-up to gameTitle
-  for (let i = 0; i < gameTitle.length; i++) {
-    setTimeout(() => {
-      if (!gameTitle[i].classList.contains("move-up")) {
-        gameTitle[i].classList.add("move-up");
-      }
-    }, i * 100);
-  }
-
-  // if the timeout is not null, clear it
-  if (gameTimeout) {
-    clearTimeout(gameTimeout);
-  }
-
-  isCalendarActive = false;
-  initializeDates();
-  updateSendButtonState();
-
-  // call the update function every 1 second
-  update();
-};
+// Expose functions for HTML onclick handlers
+window.toggleTheme = toggleTheme;
+window.generateReport = generateReport;
+window.copyEmailToClipboard = copyEmailToClipboard;
+window.startGame = startGame;
