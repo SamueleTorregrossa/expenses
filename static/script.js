@@ -1,87 +1,106 @@
 // Theme Management
 function initializeTheme() {
-  let savedTheme = 'dark';
+  let savedTheme = "dark";
   try {
-    savedTheme = localStorage.getItem('theme') || 'dark';
+    savedTheme = localStorage.getItem("theme") || "dark";
   } catch (error) {
-    console.error('Error accessing localStorage:', error);
+    console.error("Error accessing localStorage:", error);
   }
-  
-  const themeIcon = document.getElementById('theme-icon');
+
+  const themeIcon = document.getElementById("theme-icon");
   if (!themeIcon) {
-    console.error('Theme icon element not found');
+    console.error("Theme icon element not found");
     return;
   }
-  
-  if (savedTheme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    themeIcon.textContent = 'light_mode';
+
+  if (savedTheme === "light") {
+    document.documentElement.setAttribute("data-theme", "light");
+    themeIcon.textContent = "light_mode";
   } else {
-    document.documentElement.removeAttribute('data-theme');
-    themeIcon.textContent = 'dark_mode';
+    document.documentElement.removeAttribute("data-theme");
+    themeIcon.textContent = "dark_mode";
   }
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const themeIcon = document.getElementById('theme-icon');
-  
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const themeIcon = document.getElementById("theme-icon");
+
   if (!themeIcon) {
-    console.error('Theme icon element not found');
+    console.error("Theme icon element not found");
     return;
   }
-  
-  if (currentTheme === 'light') {
+
+  if (currentTheme === "light") {
     // Switch to dark mode
-    document.documentElement.removeAttribute('data-theme');
-    themeIcon.textContent = 'dark_mode';
+    document.documentElement.removeAttribute("data-theme");
+    themeIcon.textContent = "dark_mode";
     try {
-      localStorage.setItem('theme', 'dark');
+      localStorage.setItem("theme", "dark");
     } catch (error) {
-      console.error('Failed to save theme to localStorage:', error);
+      console.error("Failed to save theme to localStorage:", error);
     }
   } else {
     // Switch to light mode
-    document.documentElement.setAttribute('data-theme', 'light');
-    themeIcon.textContent = 'light_mode';
+    document.documentElement.setAttribute("data-theme", "light");
+    themeIcon.textContent = "light_mode";
     try {
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem("theme", "light");
     } catch (error) {
-      console.error('Failed to save theme to localStorage:', error);
+      console.error("Failed to save theme to localStorage:", error);
     }
   }
 }
 
 // Initialize theme on page load
-document.addEventListener('DOMContentLoaded', initializeTheme);
+document.addEventListener("DOMContentLoaded", initializeTheme);
+
+// Update copy button state based on email template content
+function updateCopyButtonState() {
+  const copyButton = document.querySelector(".copy-button");
+  const emailTextarea = document.getElementById("email-template");
+
+  if (emailTextarea && copyButton) {
+    if (emailTextarea.value.trim()) {
+      copyButton.disabled = false;
+      copyButton.style.opacity = "1";
+      copyButton.style.cursor = "pointer";
+    } else {
+      copyButton.disabled = true;
+      copyButton.style.opacity = "0.5";
+      copyButton.style.cursor = "not-allowed";
+    }
+  }
+}
 
 // Email template generation
 function generateEmailTemplate() {
   const userName = document.querySelector("#name").value.trim();
   let hrName = document.querySelector("#hr-name").value.trim();
-  
+
   // Input validation with fallback
   if (!hrName) {
     hrName = "HR Department";
   }
-  
+
   const selectedDates = document.querySelectorAll(".selected");
-  
+
   if (!userName || selectedDates.length === 0) {
-    document.getElementById('email-template').value = '';
+    document.getElementById("email-template").value = "";
+    updateCopyButtonState(); // Update button state when clearing template
     return;
   }
-  
+
   // Get dates from selected elements
-  const datesArray = Array.from(selectedDates).map(date => date.dataset.date);
-  
+  const datesArray = Array.from(selectedDates).map((date) => date.dataset.date);
+
   // Analyze months to get month and year
   const monthAnalysis = analyzeOfficeDaysMonths(datesArray);
-  
+
   if (monthAnalysis.singleMonth) {
     const monthName = months[monthAnalysis.singleMonth.month];
     const year = monthAnalysis.singleMonth.year;
-    
+
     // Generate email text
     const emailText = `Dear ${hrName},
 
@@ -90,11 +109,11 @@ Let me know if you have any questions.
 
 Best wishes,
 ${userName}`;
-    
-    document.getElementById('email-template').value = emailText;
+
+    document.getElementById("email-template").value = emailText;
   } else if (monthAnalysis.isMixed) {
     // Handle mixed months
-    const monthsList = monthAnalysis.monthsFound.join(', ');
+    const monthsList = monthAnalysis.monthsFound.join(", ");
     const emailText = `Dear ${hrName},
 
 Please find attached my travel expense report for ${monthsList}.
@@ -102,43 +121,46 @@ Let me know if you have any questions.
 
 Best wishes,
 ${userName}`;
-    
-    document.getElementById('email-template').value = emailText;
+
+    document.getElementById("email-template").value = emailText;
   }
+
+  // Update copy button state after generating email
+  updateCopyButtonState();
 }
 
 // Copy email to clipboard
 function copyEmailToClipboard() {
-  const emailTextarea = document.getElementById('email-template');
-  const feedback = document.getElementById('copy-feedback');
-  
+  const emailTextarea = document.getElementById("email-template");
+  const feedback = document.getElementById("copy-feedback");
+
   if (!emailTextarea.value) {
-    alert('Please generate an email template first by selecting dates and entering your name.');
-    return;
+    return; // Button should be disabled, but double-check
   }
-  
+
   // Save HR name to localStorage when copying email
   const hrName = document.querySelector("#hr-name").value.trim();
   if (hrName) {
     try {
       localStorage.setItem("hr-name", hrName);
     } catch (error) {
-      console.warn('Failed to save HR name to localStorage:', error);
+      console.warn("Failed to save HR name to localStorage:", error);
     }
   }
-  
+
   // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(emailTextarea.value)
+    navigator.clipboard
+      .writeText(emailTextarea.value)
       .then(() => {
         showCopyFeedback(feedback);
       })
       .catch((error) => {
-        console.warn('Clipboard API failed, using fallback method:', error);
+        console.warn("Clipboard API failed, using fallback method:", error);
         fallbackCopyToClipboard(emailTextarea, feedback);
       });
   } else {
-    console.info('Clipboard API not available, using fallback method');
+    console.info("Clipboard API not available, using fallback method");
     fallbackCopyToClipboard(emailTextarea, feedback);
   }
 }
@@ -147,26 +169,30 @@ function copyEmailToClipboard() {
 function fallbackCopyToClipboard(textarea, feedback) {
   textarea.select();
   textarea.setSelectionRange(0, 99999); // For mobile devices
-  
+
   try {
-    const successful = document.execCommand('copy');
+    const successful = document.execCommand("copy");
     if (successful) {
       showCopyFeedback(feedback);
     } else {
-      console.error('execCommand copy returned false');
-      alert('Copy failed. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac).');
+      console.error("execCommand copy returned false");
+      alert(
+        "Copy failed. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac)."
+      );
     }
   } catch (err) {
-    console.error('execCommand copy failed:', err);
-    alert('Copy operation not supported. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac).');
+    console.error("execCommand copy failed:", err);
+    alert(
+      "Copy operation not supported. Please select the text manually and copy with Ctrl+C (Cmd+C on Mac)."
+    );
   }
 }
 
 // Show copy feedback
 function showCopyFeedback(feedback) {
-  feedback.style.opacity = '1';
+  feedback.style.opacity = "1";
   setTimeout(() => {
-    feedback.style.opacity = '0';
+    feedback.style.opacity = "0";
   }, 2000);
 }
 
@@ -248,9 +274,13 @@ const validateForm = () => {
 const updateSendButtonState = () => {
   const sendButton = document.querySelector("#send-button");
   if (validateForm() && isCalendarActive) {
-    sendButton.hidden = false;
+    sendButton.disabled = false;
+    sendButton.style.opacity = "1";
+    sendButton.style.cursor = "pointer";
   } else {
-    sendButton.hidden = true;
+    sendButton.disabled = true;
+    sendButton.style.opacity = "0.5";
+    sendButton.style.cursor = "not-allowed";
   }
 };
 
@@ -261,21 +291,23 @@ const attachInputListeners = () => {
   const calendarDates = document.querySelector(".calendar-dates");
 
   requiredInputs.forEach((input) => {
-    input.addEventListener("input", updateSendButtonState);
+    input.addEventListener("input", () => {
+      updateSendButtonState();
+      generateEmailTemplate(); // Regenerate email when any input changes
+    });
   });
-  
-  // Add listeners for email generation
-  const nameInput = document.querySelector("#name");
+
+  // Add listener for HR name changes
   const hrNameInput = document.querySelector("#hr-name");
-  if (nameInput) {
-    nameInput.addEventListener("input", generateEmailTemplate);
-  }
   if (hrNameInput) {
     hrNameInput.addEventListener("input", generateEmailTemplate);
   }
 
   calendarDates.addEventListener("click", () => {
-    setTimeout(updateSendButtonState, 0); // Delay to allow click event to modify "selected" classes
+    setTimeout(() => {
+      updateSendButtonState();
+      generateEmailTemplate(); // Regenerate email when dates change
+    }, 0); // Delay to allow click event to modify "selected" classes
   });
 
   prenexIcons.forEach((icon) => {
@@ -285,7 +317,17 @@ const attachInputListeners = () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const sendButton = document.querySelector("#send-button");
-  sendButton.hidden = true;
+  sendButton.disabled = true;
+  sendButton.style.opacity = "0.5";
+  sendButton.style.cursor = "not-allowed";
+
+  // Initialize copy button as disabled
+  const copyButton = document.querySelector(".copy-button");
+  if (copyButton) {
+    copyButton.disabled = true;
+    copyButton.style.opacity = "0.5";
+    copyButton.style.cursor = "not-allowed";
+  }
 
   // Load saved input values from localStorage
   getInputFromLocalStorage();
@@ -311,17 +353,9 @@ function addLoadOfficeDaysButton() {
     // Create upload button
     const uploadButton = document.createElement("button");
     uploadButton.id = "upload-office-days-btn";
-    uploadButton.textContent = "📁";
-    uploadButton.style.cssText = `
-      margin-left: 10px;
-      padding: 5px 10px;
-      background:rgb(101, 101, 101);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
+    uploadButton.innerHTML =
+      '<span class="material-symbols-rounded">upload_file</span>';
+    uploadButton.title = "Upload office days JSON file";
 
     // Handle file upload
     fileInput.addEventListener("change", async (event) => {
@@ -330,7 +364,8 @@ function addLoadOfficeDaysButton() {
       const file = event.target.files[0];
       if (!file) return;
 
-      uploadButton.textContent = "Processing...";
+      uploadButton.innerHTML =
+        '<span class="material-symbols-rounded">hourglass_empty</span>';
 
       try {
         const text = await file.text();
@@ -341,9 +376,11 @@ function addLoadOfficeDaysButton() {
 
           // Check for mixed month datasets
           if (monthAnalysis.isMixed) {
-            uploadButton.textContent = "❌ Mixed months detected";
+            uploadButton.innerHTML =
+              '<span class="material-symbols-rounded">error</span>';
             setTimeout(() => {
-              uploadButton.textContent = "📁";
+              uploadButton.innerHTML =
+                '<span class="material-symbols-rounded">upload_file</span>';
             }, 3000);
 
             alert(
@@ -356,9 +393,11 @@ function addLoadOfficeDaysButton() {
 
           // Check if we have valid data for a single month
           if (!monthAnalysis.singleMonth) {
-            uploadButton.textContent = "❌ No valid dates found";
+            uploadButton.innerHTML =
+              '<span class="material-symbols-rounded">error</span>';
             setTimeout(() => {
-              uploadButton.textContent = "📁";
+              uploadButton.innerHTML =
+                '<span class="material-symbols-rounded">upload_file</span>';
             }, 3000);
             return;
           }
@@ -376,7 +415,8 @@ function addLoadOfficeDaysButton() {
           // Regenerate calendar for the correct month
           manipulate();
 
-          uploadButton.textContent = `📅 Loading ${monthAnalysis.singleMonth.monthYear}...`;
+          uploadButton.innerHTML =
+            '<span class="material-symbols-rounded">event_busy</span>';
 
           // Wait a moment for calendar to render, then select dates
           setTimeout(() => {
@@ -387,28 +427,34 @@ function addLoadOfficeDaysButton() {
               });
 
             const result = autoSelectOfficeDays(officeDays);
-            uploadButton.textContent = `✅ ${result.selectedCount} days selected`;
+            uploadButton.innerHTML =
+              '<span class="material-symbols-rounded">check_circle</span>';
             console.log(
               `Navigated to ${monthAnalysis.singleMonth.monthYear} and selected ${result.selectedCount} office days`
             );
-            
+
             setTimeout(() => {
-              uploadButton.textContent = "📁";
+              uploadButton.innerHTML =
+                '<span class="material-symbols-rounded">upload_file</span>';
             }, 2000);
           }, 100);
 
           // No persistence - office days only exist until page reload
         } else {
-          uploadButton.textContent = "❌ Invalid file format";
+          uploadButton.innerHTML =
+            '<span class="material-symbols-rounded">error</span>';
           setTimeout(() => {
-            uploadButton.textContent = "📁";
+            uploadButton.innerHTML =
+              '<span class="material-symbols-rounded">upload_file</span>';
           }, 2000);
         }
       } catch (error) {
         console.error("Error parsing office days file:", error);
-        uploadButton.textContent = "❌ Error reading file";
+        uploadButton.innerHTML =
+          '<span class="material-symbols-rounded">error</span>';
         setTimeout(() => {
-          uploadButton.textContent = "📁";
+          uploadButton.innerHTML =
+            '<span class="material-symbols-rounded">upload_file</span>';
         }, 2000);
       }
 
@@ -440,7 +486,16 @@ function saveToLocalStorage() {
 
 // Function to retrieve input values from localStorage
 function getInputFromLocalStorage() {
-  const fields = ["name", "street", "zip", "city", "iban", "distance", "rate", "hr-name"];
+  const fields = [
+    "name",
+    "street",
+    "zip",
+    "city",
+    "iban",
+    "distance",
+    "rate",
+    "hr-name",
+  ];
 
   fields.forEach((field) => {
     const value = localStorage.getItem(field);
@@ -522,7 +577,7 @@ function autoSelectOfficeDays(officeDays) {
 
   // Update send button state after auto-selecting
   updateSendButtonState();
-  
+
   // Update email template after auto-selecting dates
   generateEmailTemplate();
 
@@ -532,7 +587,7 @@ function autoSelectOfficeDays(officeDays) {
 
 // Updated generateReport function using localStorage
 const generateReport = () => {
-  if (!isCalendarActive) {
+  if (!isCalendarActive || !validateForm()) {
     return;
   }
 
@@ -1109,7 +1164,6 @@ tail.addEventListener("click", () => {
 
 // Define a function that starts the game
 const startGame = () => {
-  console.log("Game started!");
   rowCount = Math.floor(calendarElements.length / 7);
   colCount = 7;
   currentPos = [0, -1];
