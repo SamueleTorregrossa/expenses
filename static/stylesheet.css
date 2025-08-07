@@ -454,6 +454,11 @@ input[type="text"]#iban::placeholder {
   font-size: 20px;
 }
 
+/* Light theme specific override for copy button text color */
+[data-theme="light"] .copy-button {
+  color: #ffffff;
+}
+
 .copy-feedback {
   color: var(--accent-primary);
   font-weight: 500;
@@ -627,6 +632,7 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
+
 
 
 
