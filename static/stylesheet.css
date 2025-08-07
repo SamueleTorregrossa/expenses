@@ -401,6 +401,7 @@ input[type="text"]#iban::placeholder {
   color: var(--text-primary);
   margin: 0;
   font-size: 1.2rem;
+  text-align: center;
 }
 
 #email-template {
@@ -626,5 +627,6 @@ input[type="text"]#iban::placeholder {
     margin-top: 20px; /* Add space above footer */
   }
 }
+
 
 
