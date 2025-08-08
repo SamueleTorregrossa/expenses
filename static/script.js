@@ -19,6 +19,7 @@ const TIMEOUTS = {
   BUTTON_RESET: 2000,
   ERROR_DISPLAY: 3000,
   CALENDAR_RENDER_DELAY: 100,
+  GAME_OVER_RESET: 3000,
 };
 
 const SELECTORS = {
@@ -754,7 +755,7 @@ function startGame() {
   snakeGame.active = true;
   snakeGame.isOver = false;
   snakeGame.isTerminated = false;
-  snakeGame.size = 1;
+  snakeGame.size = 2;
   snakeGame.period = 500;
   snakeGame.position = [0, -1];
   snakeGame.direction = [0, 1];
@@ -765,7 +766,6 @@ function startGame() {
   // Setup game board
   const todayIndex = calendarElements.findIndex((el) => el.id === "today");
   const cols = 7;
-  const rows = Math.floor(calendarElements.length / cols);
   snakeGame.fruitPosition = [Math.floor(todayIndex / cols), todayIndex % cols];
 
   // Initialize calendar for game
@@ -783,6 +783,10 @@ function startGame() {
       letter.classList.add("move-up");
     }, i * 100);
   });
+
+  // Animate tail out to the right when the game starts
+  const tail = document.querySelector(".tail");
+  if (tail) tail.classList.add("move-right");
 
   document.querySelector(".calendar-current-date").innerText = "Score: 0";
   updateSendButtonState();
@@ -844,8 +848,7 @@ function updateSnakeGame() {
  */
 function renderSnakeGame(cols) {
   const posIndex = snakeGame.position[0] * cols + snakeGame.position[1];
-  const fruitIndex =
-    snakeGame.fruitPosition[0] * cols + snakeGame.fruitPosition[1];
+  const rows = Math.floor(calendarElements.length / cols);
 
   // Check collision
   if (!snakeGame.isOver && snakeGame.bodyValues[posIndex] > 0) {
@@ -866,35 +869,48 @@ function renderSnakeGame(cols) {
       el.classList = "selected";
       el.id = "snake";
       snakeGame.bodyValues[i]--;
-    } else {
+    }
+    if (snakeGame.bodyValues[i] === 0) {
       el.classList = "inactive";
       el.id = "";
     }
   });
 
-  // Mark snake head
-  calendarElements[posIndex].id = "head";
+  // Mark snake head only while game is running
+  if (!snakeGame.isOver) {
+    calendarElements[posIndex].id = "head";
+  }
 
   // Check fruit collection
   if (
     snakeGame.position[0] === snakeGame.fruitPosition[0] &&
     snakeGame.position[1] === snakeGame.fruitPosition[1]
   ) {
-    // Find new fruit position
-    while (calendarElements[fruitIndex].classList.contains("selected")) {
-      snakeGame.fruitPosition[0] = Math.floor(
-        Math.random() * Math.floor(calendarElements.length / cols)
-      );
-      snakeGame.fruitPosition[1] = Math.floor(Math.random() * cols);
-    }
+    // Find a new fruit position not on the snake body
+    let newRow = snakeGame.fruitPosition[0];
+    let newCol = snakeGame.fruitPosition[1];
+    let newIndex = newRow * cols + newCol;
+    let attempts = 0;
+    do {
+      newRow = Math.floor(Math.random() * rows);
+      newCol = Math.floor(Math.random() * cols);
+      newIndex = newRow * cols + newCol;
+      attempts++;
+      // Safety to avoid potential infinite loops in degenerate cases
+      if (attempts > calendarElements.length * 2) break;
+    } while (snakeGame.bodyValues[newIndex] > 0 || newIndex === posIndex);
+
+    snakeGame.fruitPosition = [newRow, newCol];
     snakeGame.size++;
     document.querySelector(".calendar-current-date").innerText = `Score: ${
       snakeGame.size - 1
     }`;
   }
 
-  // Mark fruit
-  calendarElements[fruitIndex].id = "fruit";
+  // Mark fruit (recompute index after potential move)
+  const newFruitIndex =
+    snakeGame.fruitPosition[0] * cols + snakeGame.fruitPosition[1];
+  calendarElements[newFruitIndex].id = "fruit";
 }
 
 /**
@@ -904,7 +920,7 @@ function checkSnakeGameStatus() {
   const inactiveCount = snakeGame.bodyValues.filter((v) => v === 0).length;
 
   // Check win condition
-  if (inactiveCount <= 1) {
+  if (inactiveCount < 1) {
     snakeGame.isOver = true;
     document.querySelector(".calendar-current-date").innerText =
       "🎉 You Win 🎉";
@@ -914,10 +930,18 @@ function checkSnakeGameStatus() {
   }
 
   // Check if game over animation finished
-  const selectedCount = snakeGame.bodyValues.filter((v) => v > 0).length;
-  if (snakeGame.isOver && selectedCount <= 0) {
+  // const selectedCount = snakeGame.bodyValues.filter((v) => v > 0).length;
+  // Just take the sum of the body values
+  const selectedCount = snakeGame.bodyValues.reduce(
+    (acc, curr) => acc + curr,
+    0
+  );
+  if (snakeGame.isOver && selectedCount <= 0 && !snakeGame.isTerminated) {
+    // Stop the game loop and pause on game over before resetting
     snakeGame.isTerminated = true;
-    resetAfterSnakeGame();
+    setTimeout(() => {
+      resetAfterSnakeGame();
+    }, TIMEOUTS.GAME_OVER_RESET);
   }
 }
 
@@ -935,7 +959,7 @@ function resetAfterSnakeGame() {
 
   // Reset tail animation
   const tail = document.querySelector(".tail");
-  if (tail) tail.classList.toggle("move-right");
+  if (tail) tail.classList.remove("move-right");
 
   // Restore calendar
   renderCalendar();
