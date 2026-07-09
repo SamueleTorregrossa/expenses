@@ -1063,6 +1063,46 @@ function initializeNavigation() {
 /**
  * Initialize application on DOM load
  */
+/**
+ * Load office days from the URL hash: #days=1/7/2026,2/7/2026,...
+ * Lets an external tool (the office_days tracker) open this app with a month's
+ * expensable dates already selected. Reuses the same month analysis + selection
+ * as the file upload.
+ */
+function loadOfficeDaysFromHash() {
+  const match = (location.hash || "").match(/(?:days|dates)=([^&]+)/i);
+  if (!match) return;
+
+  let officeDays;
+  try {
+    officeDays = decodeURIComponent(match[1])
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } catch (error) {
+    return;
+  }
+  if (!officeDays.length) return;
+
+  const monthAnalysis = analyzeMonths(officeDays);
+  if (monthAnalysis.isMixed || !monthAnalysis.singleMonth) {
+    console.warn("Ignoring URL office days (mixed months or invalid):", officeDays);
+    return;
+  }
+
+  currentMonth = monthAnalysis.singleMonth.month;
+  currentYear = monthAnalysis.singleMonth.year;
+  currentDate = new Date(currentYear, currentMonth, 1);
+  renderCalendar();
+
+  setTimeout(() => {
+    selectOfficeDays(officeDays);
+    console.log(
+      `Loaded ${officeDays.length} office day(s) from URL for ${monthAnalysis.singleMonth.monthYear}`
+    );
+  }, TIMEOUTS.CALENDAR_RENDER_DELAY);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize theme
   initializeTheme();
@@ -1086,6 +1126,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Add upload button
   createUploadButton();
+
+  // Pre-select dates passed via the URL hash (#days=1/7/2026,2/7/2026,...), if any.
+  loadOfficeDaysFromHash();
 
   // Update initial states
   updateSendButtonState();
